@@ -8,9 +8,11 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    Home: typeof import('./components/modules/Home.vue')['default']
+    EventCategorySelector: typeof import('./components/admin/EventCategorySelector.vue')['default']
+    EventImageUploader: typeof import('./components/admin/EventImageUploader.vue')['default']
+    EventInfoForm: typeof import('./components/admin/EventInfoForm.vue')['default']
+    EventPrivacySettings: typeof import('./components/admin/EventPrivacySettings.vue')['default']
     LanguageSwitcher: typeof import('./components/LanguageSwitcher.vue')['default']
-    NewEvent: typeof import('./components/modules/NewEvent.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

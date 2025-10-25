@@ -16,10 +16,7 @@ export type SvgIcon = {
 }
 
 export const svgIcons: Record<string, SvgIcon> = {
-  // searchIcon
-  // Origem: SVG de ícone de busca (estilo Heroicons / ícone custom)
-  // Uso: campo de busca em AddFriends.vue (barra de pesquisa)
-  searchIcon: {
+  'searchIcon': {
     viewBox: '0 0 20 20',
     paths: [
       {
@@ -29,10 +26,7 @@ export const svgIcons: Record<string, SvgIcon> = {
       },
     ],
   },
-  // planeIcon
-  // Origem: ícone de avião (provavelmente Heroicons 'paper-airplane' / personalizado)
-  // Uso: usado em AddFriends.vue como decoração/ilustração junto à lista
-  planeIcon: {
+  'planeIcon': {
     viewBox: '0 0 20 20',
     paths: [
       {
@@ -40,10 +34,7 @@ export const svgIcons: Record<string, SvgIcon> = {
       },
     ],
   },
-  // backArrow
-  // Origem: ícone de seta para voltar (linha simples, estilo outline)
-  // Uso: botões de retorno em Login.vue e Signup.vue
-  backArrow: {
+  'backArrow': {
     viewBox: '0 0 24 24',
     paths: [
       {
@@ -53,10 +44,7 @@ export const svgIcons: Record<string, SvgIcon> = {
       },
     ],
   },
-  // checkIcon
-  // Origem: ícone de check/confirm (estilo simples)
-  // Uso: indicadores de regra de senha em Signup.vue e Login.vue
-  checkIcon: {
+  'checkIcon': {
     viewBox: '0 0 12 12',
     paths: [
       {
@@ -66,10 +54,7 @@ export const svgIcons: Record<string, SvgIcon> = {
       },
     ],
   },
-  // eyeOpen
-  // Origem: ícone de olho aberto (visualização de senha)
-  // Uso: botão de mostrar senha em InputLabel.vue e componentes de formulário
-  eyeOpen: {
+  'eyeOpen': {
     viewBox: '0 0 24 24',
     paths: [
       {
@@ -84,10 +69,7 @@ export const svgIcons: Record<string, SvgIcon> = {
       },
     ],
   },
-  // eyeClosed
-  // Origem: ícone de olho riscado/fechado (ocultar senha)
-  // Uso: botão de esconder senha em InputLabel.vue e componentes de formulário
-  eyeClosed: {
+  'eyeClosed': {
     viewBox: '0 0 24 24',
     paths: [
       {
@@ -97,28 +79,19 @@ export const svgIcons: Record<string, SvgIcon> = {
       },
     ],
   },
-  // filterIcon
-  // Origem: ícone de filtro/deslizadores
-  // Uso: botão à direita no campo de busca de Interest.vue
-  filterIcon: {
+  'filterIcon': {
     viewBox: '0 0 20 20',
     paths: [
       { d: 'M3 5h14M5 10h10M8 15h4', strokeLinecap: 'round', strokeLinejoin: 'round' },
     ],
   },
-  // plusIcon
-  // Origem: ícone de adição
-  // Uso: adicionar novo interesse na lista de sugestões de Interest.vue
-  plusIcon: {
+  'plusIcon': {
     viewBox: '0 0 20 20',
     paths: [
       { d: 'M10 4v12M4 10h12', strokeLinecap: 'round', strokeLinejoin: 'round' },
     ],
   },
-  // successBadge
-  // Origem: selo de sucesso com círculo e check
-  // Uso: tela de congratulações (Congratulations.vue)
-  successBadge: {
+  'successBadge': {
     viewBox: '0 0 128 128',
     paths: [
       {
@@ -128,6 +101,22 @@ export const svgIcons: Record<string, SvgIcon> = {
         d: 'M45 67.5 58.5 81 83 55',
         strokeLinecap: 'round',
         strokeLinejoin: 'round',
+      },
+    ],
+  },
+  'home': {
+    viewBox: '0 -960 960 960',
+    paths: [
+      {
+        d: 'M240-200h120v-240h240v240h120v-360L480-740 240-560v360Zm-80 80v-480l320-240 320 240v480H520v-240h-80v240H160Zm320-350Z',
+      },
+    ],
+  },
+  'new-event': {
+    viewBox: '0 -960 960 960',
+    paths: [
+      {
+        d: 'M680-80v-120H560v-80h120v-120h80v120h120v80H760v120h-80Zm-480-80q-33 0-56.5-23.5T120-240v-480q0-33 23.5-56.5T200-800h40v-80h80v80h240v-80h80v80h40q33 0 56.5 23.5T760-720v244q-20-3-40-3t-40 3v-84H200v320h280q0 20 3 40t11 40H200Zm0-480h480v-80H200v80Zm0 0v-80 80Z',
       },
     ],
   },

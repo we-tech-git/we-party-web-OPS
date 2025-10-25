@@ -3,6 +3,68 @@
     "nav": {
       "home": "Home",
       "newEvent": "Novo Evento"
+    },
+    "home": {
+      "heroAlt": "Evento",
+      "chartPlaceholder": "Gráfico - em breve",
+      "insightOne": "Notamos que o seu evento está em constante alta, aproveite para engajar mais ainda com as ferramentas de interação.",
+      "insightTwo": "Aproveite para engajar ainda mais com as ferramentas de interação disponíveis.",
+      "ctaManage": "Gerenciar Comentários",
+      "ctaBoost": "Impulsionar"
+    },
+    "newEvent": {
+      "uploadHint": "Envie uma foto para as pessoas saberem mais do seu evento",
+      "form": {
+        "name": "Nome do evento",
+        "description": "Descrição",
+        "date": "Data do evento",
+        "zip": "CEP",
+        "city": "Cidade",
+        "state": "Estado",
+        "district": "Bairro",
+        "street": "Rua",
+        "number": "Número"
+      },
+      "privacy": {
+        "title": "Evento privado?",
+        "public": "Público",
+        "followers": "Privado para seguidores",
+        "subTitle": "Privado somente para convidados",
+        "description": "Eventos privados não aparecerão para o público geral, mas podem aparecer para os seus seguidores ou somente para quem você convidar.",
+        "invitesTitle": "Convites Específicos",
+    "inviteAlt": "Convidado",
+    "addInvite": "Adicionar convidado",
+        "invitesDescription": "Envie convites para seguidores específicos ou até mesmo para amigos, mesmo que ainda não tenham o app. Isso fará com que um convite personalizado chegue até essas pessoas alertando sobre seu evento.",
+        "commentsTitle": "Permitir comentário?",
+        "commentsNo": "Não permitido",
+        "commentsYes": "Permitido",
+        "commentsDescription": "Eventos públicos irão aparecer para o público em geral no feed de eventos, onde poderão curtir, comentar e compartilhar."
+      },
+      "categories": {
+        "title": "Adicione uma categoria ao seu evento",
+        "list": [
+          "Palestra",
+          "Amapiano",
+          "Mandelão",
+          "Reggae",
+          "Anos 90",
+          "Anos 80",
+          "Comunitário",
+          "Pop",
+          "Vintage",
+          "Comédia",
+          "Rock",
+          "Tabacaria",
+          "Funk",
+          "Trap",
+          "Eletrônica",
+          "Stand Up"
+        ],
+        "addMore": "Adicionar mais categorias",
+        "addMorePrompt": "Digite o nome da nova categoria",
+        "duplicateMessage": "Essa categoria já foi adicionada."
+      },
+      "submit": "Adicionar evento"
     }
   }
 }

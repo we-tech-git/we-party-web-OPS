@@ -3,6 +3,68 @@
     "nav": {
       "home": "Home",
       "newEvent": "New Event"
+    },
+    "home": {
+      "heroAlt": "Event",
+      "chartPlaceholder": "Chart - coming soon",
+      "insightOne": "We noticed your event keeps growing, take advantage and engage even more with the interaction tools.",
+      "insightTwo": "Make the most of the interaction tools available to boost your results.",
+      "ctaManage": "Manage Comments",
+      "ctaBoost": "Boost"
+    },
+    "newEvent": {
+      "uploadHint": "Upload a photo so people can learn more about your event",
+      "form": {
+        "name": "Event name",
+        "description": "Description",
+        "date": "Event date",
+        "zip": "ZIP code",
+        "city": "City",
+        "state": "State",
+        "district": "District",
+        "street": "Street",
+        "number": "Number"
+      },
+      "privacy": {
+        "title": "Private event?",
+        "public": "Public",
+        "followers": "Private for followers",
+        "subTitle": "Private for guests only",
+        "description": "Private events will not appear to the general audience, but they can show up for your followers or only for the guests you invite.",
+        "invitesTitle": "Specific invites",
+    "inviteAlt": "Guest",
+    "addInvite": "Add guest",
+        "invitesDescription": "Send invites to specific followers or even to friends who still do not have the app. A personalised invite will reach them with all the event details.",
+        "commentsTitle": "Allow comments?",
+        "commentsNo": "Not allowed",
+        "commentsYes": "Allowed",
+        "commentsDescription": "Public events appear in the events feed, where people can like, comment and share."
+      },
+      "categories": {
+        "title": "Add a category to your event",
+        "list": [
+          "Talk",
+          "Amapiano",
+          "Mandelão",
+          "Reggae",
+          "90s",
+          "80s",
+          "Community",
+          "Pop",
+          "Vintage",
+          "Comedy",
+          "Rock",
+          "Tobacconist",
+          "Funk",
+          "Trap",
+          "Electronic",
+          "Stand Up"
+        ],
+        "addMore": "Add more categories",
+        "addMorePrompt": "Type the new category name",
+        "duplicateMessage": "This category has already been added."
+      },
+      "submit": "Add event"
     }
   }
 }

@@ -2,22 +2,13 @@
   <div class="language-switcher">
     <v-menu>
       <template #activator="{ props }">
-        <v-btn
-          v-bind="props"
-          color="grey-darken-1"
-          icon
-          variant="text"
-        >
+        <v-btn v-bind="props" color="grey-darken-1" icon variant="text">
           <v-icon>mdi-web</v-icon>
         </v-btn>
       </template>
 
       <v-list>
-        <v-list-item
-          v-for="lang in availableLanguages"
-          :key="lang.code"
-          @click="changeLanguage(lang.code)"
-        >
+        <v-list-item v-for="lang in availableLanguages" :key="lang.code" @click="changeLanguage(lang.code)">
           <v-list-item-title>{{ lang.name }}</v-list-item-title>
         </v-list-item>
       </v-list>
@@ -46,8 +37,8 @@
 <style scoped>
 .language-switcher {
   position: absolute;
-  top: 1rem; /* 16px */
-  right: 1rem; /* 16px */
-  z-index: 1000; /* Garante que fique por cima de outros elementos */
+  top: 1rem;
+  right: 6.5rem;
+  z-index: 1000;
 }
 </style>
