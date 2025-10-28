@@ -1,5 +1,17 @@
 {
   "admin": {
+    "header": {
+      "brandTitle": "WE PARTY",
+      "brandSubtitle": "Producer space",
+      "brandAria": "We Party – Producer space",
+      "changeAvatar": "Change profile photo",
+  "avatarAlt": "Producer profile photo",
+  "avatarModalTitle": "Update profile photo",
+  "avatarModalDescription": "Upload a new image so attendees recognize you instantly.",
+  "avatarModalUpload": "Upload new photo",
+  "avatarModalRemove": "Remove photo",
+  "avatarModalCancel": "Cancel"
+    },
     "nav": {
       "home": "Home",
       "newEvent": "New Event"
@@ -14,6 +26,11 @@
     },
     "newEvent": {
       "uploadHint": "Upload a photo so people can learn more about your event",
+  "uploadAction": "Click to add an image",
+  "uploadDrop": "Drag and drop or click to upload",
+  "uploadChange": "Change image",
+  "uploadRemove": "Remove image",
+  "uploadPreviewAlt": "Event image preview",
       "form": {
         "name": "Event name",
         "description": "Description",
@@ -31,9 +48,12 @@
         "followers": "Private for followers",
         "subTitle": "Private for guests only",
         "description": "Private events will not appear to the general audience, but they can show up for your followers or only for the guests you invite.",
-        "invitesTitle": "Specific invites",
+    "invitesTitle": "Specific invites",
     "inviteAlt": "Guest",
     "addInvite": "Add guest",
+    "searchPlaceholder": "Search guest",
+    "inviteActionAdd": "Invite",
+    "inviteActionRemove": "Uninvite",
         "invitesDescription": "Send invites to specific followers or even to friends who still do not have the app. A personalised invite will reach them with all the event details.",
         "commentsTitle": "Allow comments?",
         "commentsNo": "Not allowed",
@@ -62,7 +82,14 @@
         ],
         "addMore": "Add more categories",
         "addMorePrompt": "Type the new category name",
-        "duplicateMessage": "This category has already been added."
+        "duplicateMessage": "This category has already been added.",
+        "addModalTitle": "Add new category",
+        "addModalDescription": "Create a custom category for this event.",
+        "addModalLabel": "Category name",
+        "addModalPlaceholder": "Type the category name",
+        "addModalCancel": "Cancel",
+        "addModalConfirm": "Add",
+        "addModalRequired": "Please enter a category name."
       },
       "submit": "Add event"
     }

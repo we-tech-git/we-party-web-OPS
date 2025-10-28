@@ -30,8 +30,8 @@ meta:
     </div>
 
     <footer class="home-actions">
-      <v-btn class="action-button" color="orange">{{ t('admin.home.ctaManage') }}</v-btn>
-      <v-btn class="action-button" color="orange">{{ t('admin.home.ctaBoost') }}</v-btn>
+      <button class="action-button" type="button">{{ t('admin.home.ctaManage') }}</button>
+      <button class="action-button" type="button">{{ t('admin.home.ctaBoost') }}</button>
     </footer>
   </section>
 </template>
@@ -122,9 +122,14 @@ meta:
 }
 
 .action-button {
+  background: linear-gradient(270deg, #ff4f94 0%, #f9a538 90.5%);
+  border: none;
   border-radius: 12px;
+  box-shadow: 0 12px 24px -18px rgba(255, 79, 148, 0.6);
+  cursor: pointer;
   color: #ffffff !important;
   font-weight: 600;
+  padding: 12px 24px;
   text-transform: none;
 }
 

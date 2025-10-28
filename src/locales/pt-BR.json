@@ -1,5 +1,17 @@
 {
   "admin": {
+    "header": {
+      "brandTitle": "WE PARTY",
+      "brandSubtitle": "Espaço do produtor",
+      "brandAria": "We Party – Espaço do produtor",
+      "changeAvatar": "Alterar foto do perfil",
+  "avatarAlt": "Foto do produtor",
+  "avatarModalTitle": "Atualizar foto do perfil",
+  "avatarModalDescription": "Envie uma nova imagem para que as pessoas reconheçam você rapidamente.",
+  "avatarModalUpload": "Enviar nova foto",
+  "avatarModalRemove": "Remover foto",
+  "avatarModalCancel": "Cancelar"
+    },
     "nav": {
       "home": "Home",
       "newEvent": "Novo Evento"
@@ -14,6 +26,11 @@
     },
     "newEvent": {
       "uploadHint": "Envie uma foto para as pessoas saberem mais do seu evento",
+  "uploadAction": "Clique para adicionar uma imagem",
+  "uploadDrop": "Arraste e solte ou clique para enviar",
+  "uploadChange": "Trocar imagem",
+  "uploadRemove": "Remover imagem",
+  "uploadPreviewAlt": "Pré-visualização da imagem do evento",
       "form": {
         "name": "Nome do evento",
         "description": "Descrição",
@@ -31,9 +48,12 @@
         "followers": "Privado para seguidores",
         "subTitle": "Privado somente para convidados",
         "description": "Eventos privados não aparecerão para o público geral, mas podem aparecer para os seus seguidores ou somente para quem você convidar.",
-        "invitesTitle": "Convites Específicos",
+    "invitesTitle": "Convites Específicos",
     "inviteAlt": "Convidado",
     "addInvite": "Adicionar convidado",
+    "searchPlaceholder": "Buscar convidado",
+    "inviteActionAdd": "Convidar",
+    "inviteActionRemove": "Remover",
         "invitesDescription": "Envie convites para seguidores específicos ou até mesmo para amigos, mesmo que ainda não tenham o app. Isso fará com que um convite personalizado chegue até essas pessoas alertando sobre seu evento.",
         "commentsTitle": "Permitir comentário?",
         "commentsNo": "Não permitido",
@@ -62,7 +82,14 @@
         ],
         "addMore": "Adicionar mais categorias",
         "addMorePrompt": "Digite o nome da nova categoria",
-        "duplicateMessage": "Essa categoria já foi adicionada."
+        "duplicateMessage": "Essa categoria já foi adicionada.",
+        "addModalTitle": "Adicionar nova categoria",
+        "addModalDescription": "Crie uma categoria personalizada para este evento.",
+        "addModalLabel": "Nome da categoria",
+        "addModalPlaceholder": "Digite o nome da categoria",
+        "addModalCancel": "Cancelar",
+        "addModalConfirm": "Adicionar",
+        "addModalRequired": "Informe um nome para a categoria."
       },
       "submit": "Adicionar evento"
     }

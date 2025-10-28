@@ -1,10 +1,12 @@
 <template>
-  <v-app>
-    <LanguageSwitcher />
+  <div class="app-shell">
     <router-view />
-  </v-app>
+  </div>
 </template>
 
-<script lang="ts" setup>
-  import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
-</script>
+<style scoped>
+.app-shell {
+  min-height: 100vh;
+  background-color: #f6f6f9;
+}
+</style>

@@ -1,10 +1,15 @@
 <template>
-  <v-main>
+  <main class="default-main">
     <router-view />
-  </v-main>
-
+  </main>
 </template>
 
 <script lang="ts" setup>
-  //
+//
 </script>
+
+<style scoped>
+.default-main {
+  min-height: 100vh;
+}
+</style>
