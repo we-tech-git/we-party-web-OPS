@@ -10,7 +10,7 @@
           </h1>
         </div>
         <div class="admin-header__actions">
-          <LanguageSwitcher />
+          <LanguageSwitcher data-tour="language-switcher" />
           <div class="admin-header__avatar">
             <input
               ref="avatarInputRef"
@@ -96,12 +96,19 @@
             v-for="item in items"
             :key="item.title"
             :class="['admin-nav__item', { 'admin-nav__item--active': isActive(item.to) }]"
+            :data-tour="item.tourId"
             :to="item.to"
           >
             <img :alt="item.title" class="admin-nav__icon" :src="item.icon">
             <span>{{ item.title }}</span>
           </RouterLink>
         </nav>
+
+        <!-- Tour Button -->
+        <button class="admin-nav__tour-btn" type="button" @click="startGuidedTour">
+          <span class="mdi mdi-compass-outline" />
+          <span>{{ t('tour.startTour') }}</span>
+        </button>
       </aside>
 
       <main class="admin-content">
@@ -110,16 +117,35 @@
         </div>
       </main>
     </div>
+
+    <!-- Guided Tour -->
+    <GuidedTour
+      ref="tourRef"
+      :auto-start="true"
+      :steps="adminTourSteps"
+      storage-key="admin-tour-completed"
+      @complete="onTourComplete"
+      @skip="onTourSkip"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-  import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
+  import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useRoute } from 'vue-router'
+  import analyticsIcon from '@/assets/icons/analytics.svg'
+  import devToolsIcon from '@/assets/icons/dev-tools.svg'
+  import engagementIcon from '@/assets/icons/engagement.svg'
   import homeIcon from '@/assets/icons/home.svg'
+  import lineupIcon from '@/assets/icons/lineup.svg'
   import newEventIcon from '@/assets/icons/new-event.svg'
+  import notificationsIcon from '@/assets/icons/notifications.svg'
+  import participantsIcon from '@/assets/icons/participants.svg'
+  import postEventIcon from '@/assets/icons/post-event.svg'
+  import GuidedTour from '@/components/GuidedTour.vue'
   import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
+  import { useTour } from '@/composables/useTour'
 
   const emit = defineEmits<{
     (e: 'avatar-change', file: File | null): void
@@ -127,6 +153,21 @@
 
   const { t } = useI18n()
   const route = useRoute()
+  const { adminTourSteps } = useTour()
+
+  const tourRef = ref<InstanceType<typeof GuidedTour> | null>(null)
+
+  function startGuidedTour () {
+    tourRef.value?.startTour()
+  }
+
+  function onTourComplete () {
+    console.log('Tour completed!')
+  }
+
+  function onTourSkip () {
+    console.log('Tour skipped')
+  }
 
   const defaultAvatar = 'https://cdn.vuetifyjs.com/images/john.jpg'
   const avatarSrc = ref<string>(defaultAvatar)
@@ -138,10 +179,18 @@
   let previousFocusedElement: HTMLElement | null = null
   let avatarObjectUrl: string | null = null
 
-  const items = [
-    { title: t('admin.nav.home'), icon: homeIcon, to: '/public/admin/home' },
-    { title: t('admin.nav.newEvent'), icon: newEventIcon, to: '/public/admin/new-event' },
-  ]
+  const items = computed(() => [
+    { title: t('admin.nav.home'), icon: homeIcon, to: '/public/admin/home', tourId: 'nav-home' },
+    { title: t('admin.nav.newEvent'), icon: newEventIcon, to: '/public/admin/new-event', tourId: 'nav-new-event' },
+    { title: t('admin.nav.analytics'), icon: analyticsIcon, to: '/public/admin/analytics', tourId: 'nav-analytics' },
+    { title: t('admin.nav.participants'), icon: participantsIcon, to: '/public/admin/participants', tourId: 'nav-participants' },
+    { title: t('admin.nav.engagement'), icon: engagementIcon, to: '/public/admin/engagement', tourId: 'nav-engagement' },
+    { title: t('admin.nav.notifications'), icon: notificationsIcon, to: '/public/admin/notifications', tourId: 'nav-notifications' },
+    { title: t('admin.nav.postEvent'), icon: postEventIcon, to: '/public/admin/post-event', tourId: 'nav-post-event' },
+    { title: t('admin.nav.lineup'), icon: lineupIcon, to: '/public/admin/lineup', tourId: 'nav-lineup' },
+    { title: t('admin.nav.controlPanel'), icon: analyticsIcon, to: '/public/admin/control-panel', tourId: 'nav-control-panel' },
+    { title: t('admin.nav.devTools'), icon: devToolsIcon, to: '/public/admin/dev-tools', tourId: 'nav-dev-tools' },
+  ])
 
   function isActive (target: string) {
     return route.path.startsWith(target)
@@ -238,22 +287,28 @@
 <style scoped>
 .admin-shell {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   flex-direction: column;
-  background-color: #f0f0f0;
+  background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.5), transparent 40%),
+    radial-gradient(circle at 80% 10%, rgba(255, 214, 242, 0.65), transparent 45%),
+    linear-gradient(135deg, #fff5f7 0%, #ffe6ea 100%);
 }
 
 .admin-header {
-  background-color: #ffffff;
-  box-shadow: 0 8px 24px -18px rgba(0, 0, 0, 0.35);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 10px 38px -22px rgba(255, 105, 180, 0.4);
+  z-index: 100;
+  flex-shrink: 0;
 }
 
 .admin-header__inner {
   align-items: center;
   display: grid;
-  gap: 24px;
-  grid-template-columns: 240px 1fr;
-  padding: 24px 32px 24px 24px;
+  gap: 16px;
+  grid-template-columns: 220px 1fr;
+  padding: 20px 32px;
   width: 100%;
 }
 
@@ -261,6 +316,7 @@
   display: flex;
   align-items: center;
   min-width: 0;
+  gap: 10px;
 }
 
 .admin-title {
@@ -283,6 +339,7 @@
 
 .admin-title__separator {
   color: #c9c9c9;
+  font-weight: 700;
 }
 
 .admin-header__avatar {
@@ -486,41 +543,48 @@
 .admin-body {
   display: flex;
   flex: 1 1 0;
+  overflow: hidden;
 }
 
 .admin-nav {
-  background-color: #ffffff;
-  border-right: 1px solid rgba(240, 240, 240, 0.8);
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(14px);
+  border-right: 1px solid rgba(255, 255, 255, 0.35);
   min-width: 240px;
-  padding: 48px 24px;
+  padding: 36px 24px;
+  overflow-y: auto;
 }
 
 .admin-nav__list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .admin-nav__item {
   align-items: center;
-  border-radius: 16px;
+  border-radius: 18px;
   color: #6b6b7b;
   display: flex;
-  font-weight: 600;
+  font-weight: 700;
   gap: 14px;
   padding: 12px 16px;
   text-decoration: none;
-  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .admin-nav__item:hover {
-  background-color: rgba(255, 79, 148, 0.08);
+  background: rgba(255, 79, 148, 0.08);
+  transform: translateX(2px);
+  box-shadow: 0 12px 26px -20px rgba(0, 0, 0, 0.35);
 }
 
 .admin-nav__item--active {
-  background: linear-gradient(270deg, #ff4f94 0%, #f9a538 90.5%);
-  box-shadow: 0 18px 32px -24px rgba(255, 79, 148, 0.6);
+  background: linear-gradient(135deg, #ff9a5f 0%, #ff4f8b 100%);
+  box-shadow: 0 22px 38px -24px rgba(255, 79, 148, 0.55);
   color: #ffffff;
+  transform: translateX(2px);
 }
 
 .admin-nav__item--active .admin-nav__icon {
@@ -528,24 +592,52 @@
 }
 
 .admin-nav__icon {
-  height: 28px;
-  width: 28px;
-  filter: grayscale(1);
+  height: 26px;
+  width: 26px;
+  filter: grayscale(0.3);
+}
+
+.admin-nav__tour-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  margin-top: auto;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(167, 139, 250, 0.15) 100%);
+  border: 2px dashed rgba(139, 92, 246, 0.4);
+  border-radius: 14px;
+  color: #7c3aed;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-nav__tour-btn:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(167, 139, 250, 0.25) 100%);
+  border-color: #7c3aed;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px -8px rgba(139, 92, 246, 0.4);
+}
+
+.admin-nav__tour-btn .mdi {
+  font-size: 20px;
 }
 
 .admin-content {
   flex: 1 1 0;
   overflow-y: auto;
-  padding: 48px;
+  padding: 56px 48px 64px;
 }
 
 .admin-content__inner {
-  background-color: #ffffff;
-  border-radius: 24px;
-  box-shadow: 0 16px 40px -20px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.78) 0%, rgba(248, 244, 255, 0.82) 100%);
+  backdrop-filter: blur(18px);
+  border-radius: 28px;
+  box-shadow: 0 25px 60px -30px rgba(255, 105, 180, 0.35);
   margin: 0 auto;
-  max-width: 1080px;
-  padding: 48px;
+  max-width: 1180px;
+  padding: 52px;
 }
 
 .we-party-text {
@@ -557,9 +649,9 @@
 }
 
 .producer-space-text {
-  color: #ff0080;
-  font-size: clamp(0.9rem, 0.85rem + 0.2vw, 1.1rem);
-  font-weight: 600;
+  color: #ff4f8b;
+  font-size: clamp(0.95rem, 0.9rem + 0.2vw, 1.1rem);
+  font-weight: 700;
 }
 
 @media (max-width: 960px) {

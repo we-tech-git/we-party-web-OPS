@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
 
   const { locale } = useI18n()
@@ -47,6 +47,11 @@
     const found = availableLanguages.find(lang => lang.code === locale.value)
     return found ? found.name : locale.value
   })
+
+  // Sincronizar o atributo lang do HTML com o idioma selecionado
+  watch(locale, newLocale => {
+    document.documentElement.lang = newLocale
+  }, { immediate: true })
 
   function toggleMenu () {
     isOpen.value = !isOpen.value

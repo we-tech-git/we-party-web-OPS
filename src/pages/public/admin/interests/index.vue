@@ -4,9 +4,9 @@ meta:
 </route>
 
 <template>
-  <HomeDashboard />
+  <InterestsDashboard />
 </template>
 
 <script setup lang="ts">
-  import HomeDashboard from '@/components/admin/home/HomeDashboard.vue'
+  import InterestsDashboard from '@/components/admin/interests/index.vue'
 </script>

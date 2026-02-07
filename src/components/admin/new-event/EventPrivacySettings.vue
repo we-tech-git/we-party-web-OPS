@@ -107,8 +107,10 @@
 <script setup lang="ts">
   import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
+  import { useCreateEventStore } from '@/stores/createEvent'
 
   const { t } = useI18n()
+  const store = useCreateEventStore()
 
   const emit = defineEmits<{
     (e: 'privacy-change', value: 'public' | 'followers'): void
@@ -118,8 +120,9 @@
 
   type Contact = { id: number, name: string, avatar: string }
 
-  const selectedPrivacy = ref<'public' | 'followers'>('followers')
-  const selectedComments = ref<'no' | 'yes'>('yes')
+  const selectedPrivacy = computed(() => store.isPublic ? 'public' : 'followers')
+  const selectedComments = computed(() => store.allowComments ? 'yes' : 'no')
+
   const invitees = ref<Contact[]>([
     { id: 1, name: `${t('admin.newEvent.privacy.inviteAlt')} 1`, avatar: 'https://i.pravatar.cc/100?img=12' },
     { id: 2, name: `${t('admin.newEvent.privacy.inviteAlt')} 2`, avatar: 'https://i.pravatar.cc/100?img=32' },
@@ -151,12 +154,12 @@
   ] as const
 
   function selectPrivacy (option: 'public' | 'followers') {
-    selectedPrivacy.value = option
+    store.isPublic = (option === 'public')
     emit('privacy-change', option)
   }
 
   function selectComments (option: 'no' | 'yes') {
-    selectedComments.value = option
+    store.allowComments = (option === 'yes')
     emit('comments-change', option)
   }
 

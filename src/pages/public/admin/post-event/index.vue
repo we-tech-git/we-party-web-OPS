@@ -4,9 +4,9 @@ meta:
 </route>
 
 <template>
-  <HomeDashboard />
+  <PostEventManager />
 </template>
 
 <script setup lang="ts">
-  import HomeDashboard from '@/components/admin/home/HomeDashboard.vue'
+  import PostEventManager from '@/components/admin/post-event/PostEventManager.vue'
 </script>

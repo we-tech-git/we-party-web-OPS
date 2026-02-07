@@ -7,6 +7,7 @@
 <style scoped>
 .app-shell {
   min-height: 100vh;
-  background-color: #f6f6f9;
+  /* Let layout gradients show through */
+  background: transparent;
 }
 </style>

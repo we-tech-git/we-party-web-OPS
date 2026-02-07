@@ -4,9 +4,9 @@ meta:
 </route>
 
 <template>
-  <HomeDashboard />
+  <EngagementHub />
 </template>
 
 <script setup lang="ts">
-  import HomeDashboard from '@/components/admin/home/HomeDashboard.vue'
+  import EngagementHub from '@/components/admin/engagement/EngagementHub.vue'
 </script>

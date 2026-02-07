@@ -8,12 +8,29 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    EventCategorySelector: typeof import('./components/admin/EventCategorySelector.vue')['default']
-    EventImageUploader: typeof import('./components/admin/EventImageUploader.vue')['default']
-    EventInfoForm: typeof import('./components/admin/EventInfoForm.vue')['default']
-    EventPrivacySettings: typeof import('./components/admin/EventPrivacySettings.vue')['default']
+    AnalyticsDashboard: typeof import('./components/admin/analytics/AnalyticsDashboard.vue')['default']
+    ControlPanelDashboard: typeof import('./components/admin/control-panel/ControlPanelDashboard.vue')['default']
+    DevToolsDashboard: typeof import('./components/admin/dev-tools/DevToolsDashboard.vue')['default']
+    EngagementHub: typeof import('./components/admin/engagement/EngagementHub.vue')['default']
+    EventCategorySelector: typeof import('./components/admin/new-event/EventCategorySelector.vue')['default']
+    EventImageUploader: typeof import('./components/admin/new-event/EventImageUploader.vue')['default']
+    EventInfoForm: typeof import('./components/admin/new-event/EventInfoForm.vue')['default']
+    EventPrivacySettings: typeof import('./components/admin/new-event/EventPrivacySettings.vue')['default']
+    FeedbacksCenter: typeof import('./components/admin/feedbacks/FeedbacksCenter.vue')['default']
+    GuidedTour: typeof import('./components/GuidedTour.vue')['default']
+    HomeDashboard: typeof import('./components/admin/home/HomeDashboard.vue')['default']
+    Interests: typeof import('./components/admin/interests/index.vue')['default']
+    InterestsList: typeof import('./components/admin/interests/InterestsList.vue')['default']
+    InterestsManager: typeof import('./components/admin/control-panel/InterestsManager.vue')['default']
     LanguageSwitcher: typeof import('./components/LanguageSwitcher.vue')['default']
+    LineupManager: typeof import('./components/admin/lineup/LineupManager.vue')['default']
+    NewEvent: typeof import('./components/admin/new-event/index.vue')['default']
+    NotificationsCenter: typeof import('./components/admin/notifications/NotificationsCenter.vue')['default']
+    ParticipantsManager: typeof import('./components/admin/participants/ParticipantsManager.vue')['default']
+    PostEventManager: typeof import('./components/admin/post-event/PostEventManager.vue')['default']
+    RequestsQueue: typeof import('./components/admin/interests/RequestsQueue.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    UsersManager: typeof import('./components/admin/users/UsersManager.vue')['default']
   }
 }

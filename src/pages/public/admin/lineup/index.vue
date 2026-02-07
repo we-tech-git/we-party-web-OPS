@@ -4,9 +4,9 @@ meta:
 </route>
 
 <template>
-  <HomeDashboard />
+  <LineupManager />
 </template>
 
 <script setup lang="ts">
-  import HomeDashboard from '@/components/admin/home/HomeDashboard.vue'
+  import LineupManager from '@/components/admin/lineup/LineupManager.vue'
 </script>
