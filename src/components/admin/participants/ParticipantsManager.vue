@@ -119,7 +119,7 @@
               class="mini-btn mini-btn--danger"
               :title="t('admin.participants.remove')"
               type="button"
-              @click="removeParticipant(participant.id)"
+              @click="removeParticipantFromList(participant.id)"
             >
               <span class="mdi mdi-close" />
             </button>
@@ -223,13 +223,18 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, ref } from 'vue'
+  import { computed, onMounted, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
+  import { checkinParticipant, getEventParticipants, getMyEvents, removeParticipant as removeParticipantApi } from '@/services/events'
 
   const { t } = useI18n()
 
+  // Estado de carregamento
+  const isLoading = ref(false)
+  const currentEventId = ref<string | null>(null)
+
   interface Participant {
-    id: number
+    id: number | string
     name: string
     email: string
     avatar: string
@@ -240,7 +245,7 @@
   }
 
   interface WaitlistPerson {
-    id: number
+    id: number | string
     name: string
     avatar: string
     joinedAt: string
@@ -253,15 +258,17 @@
   const checkinSuccess = ref(false)
   const lastCheckedIn = ref<Participant | null>(null)
 
-  // Mock data
-  const participants = ref<Participant[]>([
+  // Mock data (fallback)
+  const mockParticipants: Participant[] = [
     { id: 1, name: 'Ana Silva', email: 'ana@email.com', avatar: 'https://i.pravatar.cc/100?img=1', isVip: true, checkedIn: true, confirmedAt: '2026-01-28T14:30:00' },
     { id: 2, name: 'Bruno Costa', email: 'bruno@email.com', avatar: 'https://i.pravatar.cc/100?img=2', isVip: false, checkedIn: true, confirmedAt: '2026-01-27T10:15:00' },
     { id: 3, name: 'Carla Mendes', email: 'carla@email.com', avatar: 'https://i.pravatar.cc/100?img=3', isVip: true, checkedIn: false, confirmedAt: '2026-01-26T18:45:00' },
     { id: 4, name: 'Diego Ferreira', email: 'diego@email.com', avatar: 'https://i.pravatar.cc/100?img=4', isVip: false, checkedIn: false, confirmedAt: '2026-01-25T09:20:00' },
     { id: 5, name: 'Elena Rocha', email: 'elena@email.com', avatar: 'https://i.pravatar.cc/100?img=5', isVip: false, checkedIn: true, confirmedAt: '2026-01-24T16:00:00' },
     { id: 6, name: 'Felipe Santos', email: 'felipe@email.com', avatar: 'https://i.pravatar.cc/100?img=6', isVip: false, checkedIn: false, confirmedAt: '2026-01-23T11:30:00' },
-  ])
+  ]
+
+  const participants = ref<Participant[]>(mockParticipants)
 
   const waitlist = ref<WaitlistPerson[]>([
     { id: 101, name: 'Gabriel Lima', avatar: 'https://i.pravatar.cc/100?img=11', joinedAt: '2026-01-30T08:00:00' },
@@ -297,9 +304,57 @@
     })
   }
 
-  function doCheckin (id: number) {
+  // Carregar participantes da API
+  async function loadParticipants () {
+    isLoading.value = true
+    try {
+      // Primeiro, pega o primeiro evento do usuário para ter um eventId
+      const eventsResponse = await getMyEvents()
+      const events = eventsResponse?.data || eventsResponse || []
+
+      if (Array.isArray(events) && events.length > 0) {
+        const firstEvent = events[0] as any
+        currentEventId.value = firstEvent?.id || firstEvent?._id || null
+
+        // Agora busca os participantes do evento
+        if (currentEventId.value) {
+          const participantsResponse = await getEventParticipants(currentEventId.value)
+          const data = participantsResponse?.data || participantsResponse || []
+
+          if (Array.isArray(data) && data.length > 0) {
+            participants.value = data.map((p: any) => ({
+              id: p.id || p._id || p.userId,
+              name: p.name || p.user?.name || 'Participante',
+              email: p.email || p.user?.email || '',
+              avatar: p.avatar || p.user?.profilePicture || `https://i.pravatar.cc/100?u=${p.id}`,
+              isVip: p.isVip || false,
+              checkedIn: p.checkedIn || false,
+              confirmedAt: p.confirmedAt || p.createdAt || new Date().toISOString(),
+              note: p.note,
+            }))
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('[ParticipantsManager] Erro ao carregar participantes, usando dados mock:', error)
+      participants.value = mockParticipants
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function doCheckin (id: number | string) {
     const participant = participants.value.find(p => p.id === id)
     if (participant) {
+      // Tenta fazer check-in na API
+      if (currentEventId.value) {
+        try {
+          await checkinParticipant(currentEventId.value, String(id))
+        } catch (error) {
+          console.warn('[ParticipantsManager] Erro ao fazer check-in na API:', error)
+        }
+      }
+
       participant.checkedIn = true
       lastCheckedIn.value = participant
       checkinSuccess.value = true
@@ -309,18 +364,27 @@
     }
   }
 
-  function toggleVip (id: number) {
+  function toggleVip (id: number | string) {
     const participant = participants.value.find(p => p.id === id)
     if (participant) {
       participant.isVip = !participant.isVip
     }
   }
 
-  function removeParticipant (id: number) {
+  async function removeParticipantFromList (id: number | string) {
+    // Tenta remover na API
+    if (currentEventId.value) {
+      try {
+        await removeParticipantApi(currentEventId.value, String(id))
+      } catch (error) {
+        console.warn('[ParticipantsManager] Erro ao remover participante na API:', error)
+      }
+    }
+
     participants.value = participants.value.filter(p => p.id !== id)
   }
 
-  function approveFromWaitlist (id: number) {
+  function approveFromWaitlist (id: number | string) {
     const person = waitlist.value.find(p => p.id === id)
     if (person) {
       participants.value.push({
@@ -364,10 +428,14 @@
     console.log('Opening add VIP modal...')
   }
 
-  function editVipNote (id: number) {
+  function editVipNote (id: number | string) {
     // TODO: Implement edit VIP note
     console.log('Editing VIP note for:', id)
   }
+
+  onMounted(() => {
+    loadParticipants()
+  })
 </script>
 
 <style scoped>

@@ -1,16 +1,182 @@
+<script setup lang="ts">
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { getInterests, searchInterestsByName, type Interest } from '@/services/interests'
+import { useCreateEventStore } from '@/stores/createEvent'
+
+const { t } = useI18n()
+const store = useCreateEventStore()
+
+const emit = defineEmits<{
+  (e: 'add-category', value: string): void
+}>()
+
+// Interesses vindos da API
+const apiInterests = ref<Interest[]>([])
+const isLoadingInterests = ref(false)
+const loadError = ref('')
+
+const selectedInterestIds = ref<string[]>([])
+const isModalOpen = ref(false)
+const searchQuery = ref('')
+const searchResults = ref<Interest[]>([])
+const isSearching = ref(false)
+const modalError = ref('')
+const searchInputRef = ref<HTMLInputElement | null>(null)
+const modalInputId = `category-modal-input-${Math.random().toString(36).slice(2, 8)}`
+
+const allInterests = computed(() => apiInterests.value)
+
+function isSelected(interest: Interest) {
+  return selectedInterestIds.value.includes(interest.id)
+}
+
+function toggleCategory(interest: Interest) {
+  if (isSelected(interest)) {
+    selectedInterestIds.value = selectedInterestIds.value.filter(id => id !== interest.id)
+  } else {
+    selectedInterestIds.value = [...selectedInterestIds.value, interest.id]
+  }
+  // Sincronizar com o store
+  store.interestIds = [...selectedInterestIds.value]
+}
+
+async function fetchInterests() {
+  isLoadingInterests.value = true
+  loadError.value = ''
+  try {
+    const response = await getInterests() as any
+    // A API retorna { success: true, data: [...] }
+    const data = Array.isArray(response) ? response : (response?.data || [])
+    apiInterests.value = data
+  } catch {
+    loadError.value = t('admin.newEvent.categories.loadError')
+  } finally {
+    isLoadingInterests.value = false
+  }
+}
+
+function openAddModal() {
+  searchQuery.value = ''
+  searchResults.value = []
+  modalError.value = ''
+  isModalOpen.value = true
+  nextTick(() => {
+    searchInputRef.value?.focus()
+  })
+}
+
+function closeAddModal() {
+  isModalOpen.value = false
+}
+
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+async function performSearch() {
+  const query = searchQuery.value.trim().toLowerCase()
+  if (!query) {
+    searchResults.value = []
+    return
+  }
+
+  isSearching.value = true
+  try {
+    // Busca todos os interesses e filtra localmente pelo nome
+    const response = await getInterests() as any
+    const allData = Array.isArray(response) ? response : (response?.data || [])
+    // Filtra os interesses que contêm a query no nome
+    searchResults.value = allData.filter((item: Interest) =>
+      item.name.toLowerCase().includes(query)
+    )
+  } catch {
+    searchResults.value = []
+  } finally {
+    isSearching.value = false
+  }
+}
+
+function addInterestFromSearch(interest: Interest) {
+  // Add to local list if not already present
+  if (!apiInterests.value.some(i => i.id === interest.id)) {
+    apiInterests.value = [...apiInterests.value, interest]
+  }
+  // Auto-select it
+  if (!selectedInterestIds.value.includes(interest.id)) {
+    selectedInterestIds.value = [...selectedInterestIds.value, interest.id]
+    // Sincronizar com o store
+    store.interestIds = [...selectedInterestIds.value]
+  }
+  emit('add-category', interest.name)
+  closeAddModal()
+}
+
+function handleKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    closeAddModal()
+  }
+}
+
+let previousBodyOverflow: string | null = null
+
+watch(isModalOpen, value => {
+  if (value) {
+    previousBodyOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', handleKeydown)
+  } else {
+    document.body.style.overflow = previousBodyOverflow ?? ''
+    document.removeEventListener('keydown', handleKeydown)
+  }
+})
+
+watch(searchQuery, () => {
+  if (modalError.value) {
+    modalError.value = ''
+  }
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+  searchTimeout = setTimeout(performSearch, 350)
+})
+
+onMounted(() => {
+  fetchInterests()
+})
+
+onBeforeUnmount(() => {
+  document.body.style.overflow = previousBodyOverflow ?? ''
+  document.removeEventListener('keydown', handleKeydown)
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+})
+</script>
+
 <template>
   <section class="category-card">
     <header class="card-title">{{ t('admin.newEvent.categories.title') }}</header>
-    <div class="chip-grid">
-      <button
-        v-for="tag in allCategories"
-        :key="tag"
-        :aria-pressed="isSelected(tag)"
-        :class="['category-chip', { 'category-chip--active': isSelected(tag) }]"
-        type="button"
-        @click="toggleCategory(tag)"
-      >
-        {{ tag }}
+
+    <!-- Loading State -->
+    <div v-if="isLoadingInterests" class="loading-state">
+      <span class="mdi mdi-loading mdi-spin" />
+      <span>{{ t('admin.newEvent.categories.loading') }}</span>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="loadError" class="error-state">
+      <span class="mdi mdi-alert-circle-outline" />
+      <span>{{ loadError }}</span>
+      <button class="retry-btn" type="button" @click="fetchInterests">
+        {{ t('admin.newEvent.categories.retry') }}
+      </button>
+    </div>
+
+    <!-- Interests Grid -->
+    <div v-else class="chip-grid">
+      <button v-for="interest in allInterests" :key="interest.id" :aria-pressed="isSelected(interest)"
+        :class="['category-chip', { 'category-chip--active': isSelected(interest) }]" type="button"
+        @click="toggleCategory(interest)">
+        {{ interest.name }}
       </button>
       <button :aria-label="t('admin.newEvent.categories.addMore')" class="add-more" type="button" @click="openAddModal">
         <span aria-hidden="true" class="mdi mdi-plus" />
@@ -18,147 +184,47 @@
     </div>
 
     <Teleport to="body">
-      <div
-        v-if="isModalOpen"
-        aria-modal="true"
-        class="category-modal__backdrop"
-        role="dialog"
-        @click.self="closeAddModal"
-      >
+      <div v-if="isModalOpen" aria-modal="true" class="category-modal__backdrop" role="dialog"
+        @click.self="closeAddModal">
         <div class="category-modal">
           <header class="category-modal__header">
-            <h2 class="category-modal__title">{{ t('admin.newEvent.categories.addModalTitle') }}</h2>
+            <h2 class="category-modal__title">{{ t('admin.newEvent.categories.searchModalTitle') }}</h2>
             <button class="category-modal__close" type="button" @click="closeAddModal">×</button>
           </header>
-          <p class="category-modal__description">{{ t('admin.newEvent.categories.addModalDescription') }}</p>
-          <form class="category-modal__form" @submit.prevent="confirmAddCategory">
-            <label class="category-modal__label" :for="modalInputId">
-              {{ t('admin.newEvent.categories.addModalLabel') }}
-            </label>
-            <input
-              :id="modalInputId"
-              ref="modalInputRef"
-              v-model="newCategoryName"
-              class="category-modal__input"
-              :placeholder="t('admin.newEvent.categories.addModalPlaceholder')"
-              type="text"
-            >
-            <p v-if="modalError" class="category-modal__error">{{ modalError }}</p>
-            <div class="category-modal__actions">
-              <button class="category-modal__btn category-modal__btn--secondary" type="button" @click="closeAddModal">
-                {{ t('admin.newEvent.categories.addModalCancel') }}
-              </button>
-              <button class="category-modal__btn" type="submit">
-                {{ t('admin.newEvent.categories.addModalConfirm') }}
-              </button>
+          <p class="category-modal__description">{{ t('admin.newEvent.categories.searchModalDescription') }}</p>
+
+          <div class="category-modal__search">
+            <span class="mdi mdi-magnify" />
+            <input :id="modalInputId" ref="searchInputRef" v-model="searchQuery"
+              :placeholder="t('admin.newEvent.categories.searchPlaceholder')" type="search">
+          </div>
+
+          <div class="search-results">
+            <div v-if="isSearching" class="search-loading">
+              <span class="mdi mdi-loading mdi-spin" />
             </div>
-          </form>
+            <template v-else-if="searchResults.length > 0">
+              <button v-for="result in searchResults" :key="result.id" class="search-result-item" type="button"
+                @click="addInterestFromSearch(result)">
+                <span>{{ result.name }}</span>
+                <span class="mdi mdi-plus-circle-outline" />
+              </button>
+            </template>
+            <p v-else-if="searchQuery.trim()" class="search-empty">
+              {{ t('admin.newEvent.categories.noResults') }}
+            </p>
+          </div>
+
+          <div class="category-modal__actions">
+            <button class="category-modal__btn category-modal__btn--secondary" type="button" @click="closeAddModal">
+              {{ t('admin.newEvent.categories.addModalCancel') }}
+            </button>
+          </div>
         </div>
       </div>
     </Teleport>
   </section>
 </template>
-
-<script setup lang="ts">
-  import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
-  import { useI18n } from 'vue-i18n'
-
-  const { t, tm } = useI18n()
-
-  const emit = defineEmits<{
-    (e: 'add-category', value: string): void
-  }>()
-
-  const baseCategories = computed(() => {
-    const value = tm('admin.newEvent.categories.list')
-    return Array.isArray(value) ? (value as string[]) : []
-  })
-
-  const selectedCategories = ref<string[]>([])
-  const customCategories = ref<string[]>([])
-  const isModalOpen = ref(false)
-  const newCategoryName = ref('')
-  const modalError = ref('')
-  const modalInputRef = ref<HTMLInputElement | null>(null)
-  const modalInputId = `category-modal-input-${Math.random().toString(36).slice(2, 8)}`
-
-  const allCategories = computed(() => [...baseCategories.value, ...customCategories.value])
-
-  function isSelected (tag: string) {
-    return selectedCategories.value.includes(tag)
-  }
-
-  function toggleCategory (tag: string) {
-    if (isSelected(tag)) {
-      selectedCategories.value = selectedCategories.value.filter(item => item !== tag)
-      return
-    }
-
-    selectedCategories.value = [...selectedCategories.value, tag]
-  }
-
-  function openAddModal () {
-    newCategoryName.value = ''
-    modalError.value = ''
-    isModalOpen.value = true
-    nextTick(() => {
-      modalInputRef.value?.focus()
-    })
-  }
-
-  function closeAddModal () {
-    isModalOpen.value = false
-  }
-
-  function confirmAddCategory () {
-    const label = newCategoryName.value.trim()
-
-    if (!label) {
-      modalError.value = t('admin.newEvent.categories.addModalRequired')
-      return
-    }
-
-    if (allCategories.value.some(item => item.toLowerCase() === label.toLowerCase())) {
-      modalError.value = t('admin.newEvent.categories.duplicateMessage')
-      return
-    }
-
-    customCategories.value = [...customCategories.value, label]
-    selectedCategories.value = [...selectedCategories.value, label]
-    emit('add-category', label)
-    closeAddModal()
-  }
-
-  function handleKeydown (event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      closeAddModal()
-    }
-  }
-
-  let previousBodyOverflow: string | null = null
-
-  watch(isModalOpen, value => {
-    if (value) {
-      previousBodyOverflow = document.body.style.overflow
-      document.body.style.overflow = 'hidden'
-      document.addEventListener('keydown', handleKeydown)
-    } else {
-      document.body.style.overflow = previousBodyOverflow ?? ''
-      document.removeEventListener('keydown', handleKeydown)
-    }
-  })
-
-  watch(newCategoryName, () => {
-    if (modalError.value) {
-      modalError.value = ''
-    }
-  })
-
-  onBeforeUnmount(() => {
-    document.body.style.overflow = previousBodyOverflow ?? ''
-    document.removeEventListener('keydown', handleKeydown)
-  })
-</script>
 
 <style scoped>
 .category-card {
@@ -349,5 +415,128 @@
 .category-modal__btn:focus-visible {
   outline: 3px solid rgba(255, 79, 148, 0.35);
   outline-offset: 2px;
+}
+
+/* Loading & Error States */
+.loading-state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 24px;
+  color: #8b8b99;
+  font-size: 14px;
+}
+
+.loading-state .mdi {
+  font-size: 20px;
+  color: #b46cff;
+}
+
+.error-state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  color: #d82b56;
+  font-size: 14px;
+}
+
+.error-state .mdi {
+  font-size: 20px;
+}
+
+.retry-btn {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid rgba(255, 79, 148, 0.4);
+  border-radius: 8px;
+  color: #ff3276;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  transition: all 0.2s ease;
+}
+
+.retry-btn:hover {
+  background: rgba(255, 79, 148, 0.08);
+}
+
+/* Search Modal */
+.category-modal__search {
+  align-items: center;
+  background-color: #f6f6fb;
+  border-radius: 14px;
+  display: flex;
+  margin-bottom: 16px;
+  padding: 0 14px;
+}
+
+.category-modal__search .mdi {
+  color: #8b8b99;
+  font-size: 18px;
+}
+
+.category-modal__search input {
+  background: transparent;
+  border: none;
+  color: #3b3b45;
+  flex: 1;
+  font-size: 0.95rem;
+  padding: 12px 10px;
+}
+
+.category-modal__search input:focus {
+  outline: none;
+}
+
+.search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.search-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: #b46cff;
+  font-size: 24px;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #f8f8ff;
+  border: 1px solid rgba(171, 151, 255, 0.15);
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #3b3b45;
+  transition: all 0.2s ease;
+}
+
+.search-result-item:hover {
+  background: rgba(255, 79, 148, 0.08);
+  border-color: rgba(255, 79, 148, 0.3);
+}
+
+.search-result-item .mdi {
+  color: #b46cff;
+  font-size: 20px;
+}
+
+.search-empty {
+  text-align: center;
+  padding: 24px;
+  color: #8b8b99;
+  font-size: 14px;
 }
 </style>

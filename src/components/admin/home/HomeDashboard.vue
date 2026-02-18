@@ -47,11 +47,7 @@
           </div>
         </div>
         <div class="next-event-content">
-          <img
-            alt="Event"
-            class="event-image"
-            src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400"
-          >
+          <img alt="Event" class="event-image" src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400">
           <div class="event-details">
             <h4 class="event-name">{{ nextEvent.name }}</h4>
             <p class="event-date">
@@ -189,11 +185,7 @@
           <button class="see-all-btn" type="button">{{ t('admin.home.seeAll') }}</button>
         </div>
         <div class="activity-list">
-          <div
-            v-for="(activity, index) in recentActivities"
-            :key="index"
-            class="activity-item"
-          >
+          <div v-for="(activity, index) in recentActivities" :key="index" class="activity-item">
             <div class="activity-icon" :class="`activity-icon--${activity.type}`">
               <span class="mdi" :class="activity.icon" />
             </div>
@@ -215,12 +207,7 @@
           <span class="tasks-count">{{ pendingTasksCount }}/{{ tasks.length }}</span>
         </div>
         <div class="tasks-list">
-          <label
-            v-for="task in tasks"
-            :key="task.id"
-            class="task-item"
-            :class="{ completed: task.completed }"
-          >
+          <label v-for="task in tasks" :key="task.id" class="task-item" :class="{ completed: task.completed }">
             <input v-model="task.completed" type="checkbox">
             <span class="task-checkbox">
               <span class="mdi mdi-check" />
@@ -246,11 +233,7 @@
           </h3>
         </div>
         <div class="events-timeline">
-          <div
-            v-for="event in upcomingEvents"
-            :key="event.id"
-            class="timeline-event"
-          >
+          <div v-for="event in upcomingEvents" :key="event.id" class="timeline-event">
             <div class="event-date-badge">
               <span class="event-day">{{ event.day }}</span>
               <span class="event-month">{{ event.month }}</span>
@@ -296,11 +279,7 @@
           </div>
         </div>
         <div class="reviews-list">
-          <div
-            v-for="review in recentReviews"
-            :key="review.id"
-            class="review-item"
-          >
+          <div v-for="review in recentReviews" :key="review.id" class="review-item">
             <img :alt="review.author" class="review-avatar" :src="review.avatar">
             <div class="review-content">
               <div class="review-header">
@@ -389,8 +368,12 @@
 <script setup lang="ts">
   import { computed, onMounted, onUnmounted, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
+  import { getMyEvents, getUpcomingEvents } from '@/services/events'
 
   const { t, locale } = useI18n()
+
+  // Loading state
+  const isLoadingEvents = ref(false)
 
   // Producer info
   const producerName = ref('João')
@@ -541,6 +524,58 @@
     { id: 3, name: 'Carnival Pre-Party', day: '15', month: 'Fev', venue: 'Arena Central', ticketsSold: 0, totalTickets: 1000, revenue: 0, status: 'agendado' },
   ])
 
+  // Função para carregar eventos da API
+  async function loadEvents () {
+    isLoadingEvents.value = true
+    try {
+      // Tenta buscar eventos upcoming primeiro
+      const response = await getUpcomingEvents().catch(() => getMyEvents())
+      const data = response?.data || response || []
+
+      if (Array.isArray(data) && data.length > 0) {
+        // Atualiza upcomingEvents com dados da API
+        upcomingEvents.value = data.slice(0, 5).map((event: any) => {
+          const startDate = new Date(event.startDate)
+          return {
+            id: event.id || event._id,
+            name: event.title || event.name || 'Evento',
+            day: String(startDate.getDate()).padStart(2, '0'),
+            month: startDate.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''),
+            venue: event.location || 'Local a definir',
+            ticketsSold: event.ticketsSold || 0,
+            totalTickets: event.totalTickets || 100,
+            revenue: event.revenue || 0,
+            status: event.status || 'ativo',
+          }
+        })
+
+        // Atualiza o próximo evento (nextEvent) com o primeiro da lista
+        const firstEvent = data[0] as any
+        if (firstEvent) {
+          const startDate = new Date(firstEvent.startDate)
+          nextEvent.value = {
+            name: firstEvent.title || firstEvent.name || 'Próximo Evento',
+            date: startDate.toLocaleDateString('pt-BR', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            location: firstEvent.location || 'Local a definir',
+            ticketsSold: firstEvent.ticketsSold || 0,
+            totalTickets: firstEvent.totalTickets || 100,
+            targetDate: startDate,
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('[HomeDashboard] Erro ao carregar eventos, usando dados mock:', error)
+    } finally {
+      isLoadingEvents.value = false
+    }
+  }
+
   // Reviews
   const averageRating = ref(4.7)
   const recentReviews = ref([
@@ -579,6 +614,7 @@
   onMounted(() => {
     updateCountdown()
     countdownInterval = setInterval(updateCountdown, 1000)
+    loadEvents()
   })
 
   onUnmounted(() => {
@@ -597,8 +633,15 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Welcome Header */

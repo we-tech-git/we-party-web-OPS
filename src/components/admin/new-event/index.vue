@@ -1,3 +1,46 @@
+<script setup lang="ts">
+  import { computed, ref } from 'vue'
+  import { useI18n } from 'vue-i18n'
+  import { useCreateEventStore } from '@/stores/createEvent'
+  import EventCategorySelector from './EventCategorySelector.vue'
+  import EventImageUploader from './EventImageUploader.vue'
+  import EventInfoForm from './EventInfoForm.vue'
+  import EventPrivacySettings from './EventPrivacySettings.vue'
+
+  const { t } = useI18n()
+  const store = useCreateEventStore()
+  const showSuccessModal = ref(false)
+
+  const isFormReady = computed(() => {
+    return !!(store.title && store.description && store.startDate && store.startTime && store.city)
+  })
+
+  const progressPercent = computed(() => {
+    let filled = 0
+    const fields = ['title', 'description', 'startDate', 'startTime', 'endDate', 'endTime', 'city', 'state', 'district', 'street', 'latitude', 'longitude', 'photo']
+    for (const field of fields) {
+      if (store[field as keyof typeof store]) filled++
+    }
+    return Math.round((filled / fields.length) * 100)
+  })
+
+  function handleImageChange (file: File | null) {
+    store.photo = file
+  }
+
+  async function handleSubmit () {
+    const success = await store.submitEvent()
+    if (success) {
+      showSuccessModal.value = true
+    }
+  }
+
+  function closeSuccessModal () {
+    showSuccessModal.value = false
+    store.resetForm()
+  }
+</script>
+
 <template>
   <section class="new-event">
     <!-- Progress Indicator -->
@@ -70,49 +113,6 @@
     </transition>
   </section>
 </template>
-
-<script setup lang="ts">
-  import { computed, ref } from 'vue'
-  import { useI18n } from 'vue-i18n'
-  import { useCreateEventStore } from '@/stores/createEvent'
-  import EventCategorySelector from './EventCategorySelector.vue'
-  import EventImageUploader from './EventImageUploader.vue'
-  import EventInfoForm from './EventInfoForm.vue'
-  import EventPrivacySettings from './EventPrivacySettings.vue'
-
-  const { t } = useI18n()
-  const store = useCreateEventStore()
-  const showSuccessModal = ref(false)
-
-  const isFormReady = computed(() => {
-    return !!(store.title && store.description && store.date && store.city)
-  })
-
-  const progressPercent = computed(() => {
-    let filled = 0
-    const fields = ['title', 'description', 'date', 'city', 'state', 'district', 'street', 'photo']
-    for (const field of fields) {
-      if (store[field as keyof typeof store]) filled++
-    }
-    return Math.round((filled / fields.length) * 100)
-  })
-
-  function handleImageChange (file: File | null) {
-    store.photo = file
-  }
-
-  async function handleSubmit () {
-    const success = await store.submitEvent()
-    if (success) {
-      showSuccessModal.value = true
-    }
-  }
-
-  function closeSuccessModal () {
-    showSuccessModal.value = false
-    store.resetForm()
-  }
-</script>
 
 <style scoped>
 .new-event {

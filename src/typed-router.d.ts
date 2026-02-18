@@ -31,6 +31,7 @@ declare module 'vue-router/auto-routes' {
     '/public/admin/participants/': RouteRecordInfo<'/public/admin/participants/', '/public/admin/participants', Record<never, never>, Record<never, never>>,
     '/public/admin/post-event/': RouteRecordInfo<'/public/admin/post-event/', '/public/admin/post-event', Record<never, never>, Record<never, never>>,
     '/public/admin/users/': RouteRecordInfo<'/public/admin/users/', '/public/admin/users', Record<never, never>, Record<never, never>>,
+    '/public/login/': RouteRecordInfo<'/public/login/', '/public/login', Record<never, never>, Record<never, never>>,
   }
 
   /**
@@ -94,6 +95,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/public/admin/users/index.vue': {
       routes: '/public/admin/users/'
+      views: never
+    }
+    'src/pages/public/login/index.vue': {
+      routes: '/public/login/'
       views: never
     }
   }

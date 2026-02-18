@@ -1,3 +1,87 @@
+<script setup lang="ts">
+  import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+  import { useI18n } from 'vue-i18n'
+  import { useCreateEventStore } from '@/stores/createEvent'
+
+  const { t } = useI18n()
+  const store = useCreateEventStore()
+
+  const descriptionRef = ref<HTMLElement | null>(null)
+  const emojiPickerRef = ref<HTMLElement | null>(null)
+  const showEmojiPicker = ref(false)
+  const activeCategory = ref('smileys')
+
+  const emojiCategories = [
+    {
+      name: 'smileys',
+      label: 'Smileys',
+      icon: '😀',
+      emojis: ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😋', '😛', '😜', '🤪', '😝', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '😮‍💨', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🥴', '😵', '🤯', '🤠', '🥳', '🥸', '😎', '🤓', '🧐'],
+    },
+    {
+      name: 'gestures',
+      label: 'Gestos',
+      icon: '👋',
+      emojis: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁️', '👅', '👄'],
+    },
+    {
+      name: 'party',
+      label: 'Festa',
+      icon: '🎉',
+      emojis: ['🎉', '🎊', '🎈', '🎁', '🎀', '🎂', '🍰', '🧁', '🥂', '🍾', '🥳', '🪅', '🪩', '🎤', '🎧', '🎵', '🎶', '🎹', '🥁', '🎷', '🎺', '🎸', '🪕', '🎻', '🎬', '🎭', '🎪', '🎨', '🎯', '🎮', '🕺', '💃', '🪩', '✨', '💫', '🌟', '⭐', '🔥', '💥', '💯', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💖', '💝', '💕', '💞', '💓', '💗', '💘'],
+    },
+    {
+      name: 'food',
+      label: 'Comida',
+      icon: '🍕',
+      emojis: ['🍕', '🍔', '🍟', '🌭', '🍿', '🧂', '🥓', '🥚', '🍳', '🧇', '🥞', '🧈', '🍞', '🥐', '🥨', '🥯', '🥖', '🧀', '🍖', '🍗', '🥩', '🥓', '🌮', '🌯', '🫔', '🥙', '🧆', '🥗', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🦪', '🍤', '🍙', '🍚', '🍘', '🍥', '🥠', '🥮', '🍧', '🍨', '🍦', '🥧', '🧁', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫', '🍩', '🍪'],
+    },
+    {
+      name: 'nature',
+      label: 'Natureza',
+      icon: '🌸',
+      emojis: ['🌸', '💮', '🏵️', '🌹', '🥀', '🌺', '🌻', '🌼', '🌷', '🌱', '🪴', '🌲', '🌳', '🌴', '🌵', '🌾', '🌿', '☘️', '🍀', '🍁', '🍂', '🍃', '🪺', '🪹', '🍄', '🌰', '🦀', '🦞', '🦐', '🦑', '🦪', '🐚', '🐌', '🦋', '🐛', '🐜', '🐝', '🐞', '🦗', '🪲', '🪳', '🪰', '🪱', '🦟', '☀️', '🌤️', '⛅', '🌥️', '☁️', '🌦️', '🌧️', '🌈', '⚡', '❄️', '🌙', '⭐', '🌟'],
+    },
+    {
+      name: 'symbols',
+      label: 'Símbolos',
+      icon: '💯',
+      emojis: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❤️‍🔥', '❤️‍🩹', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💯'],
+    },
+  ]
+
+  const currentEmojis = computed(() => {
+    const category = emojiCategories.find(c => c.name === activeCategory.value)
+    return category ? category.emojis : []
+  })
+
+  function toggleEmojiPicker () {
+    showEmojiPicker.value = !showEmojiPicker.value
+  }
+
+  function insertEmoji (emoji: string) {
+    store.description = (store.description || '') + emoji
+  }
+
+  function handleClickOutside (event: MouseEvent) {
+    if (
+      emojiPickerRef.value
+      && !emojiPickerRef.value.contains(event.target as Node)
+      && !(event.target as Element).closest('.emoji-trigger')
+    ) {
+      showEmojiPicker.value = false
+    }
+  }
+
+  onMounted(() => {
+    document.addEventListener('click', handleClickOutside)
+  })
+
+  onBeforeUnmount(() => {
+    document.removeEventListener('click', handleClickOutside)
+  })
+</script>
+
 <template>
   <section class="info-form">
     <v-form class="info-form__form" validate-on="input" @submit.prevent>
@@ -73,18 +157,66 @@
           </div>
         </v-col>
 
-        <v-col cols="12">
+        <v-col cols="12" md="6">
           <v-text-field
-            v-model="store.date"
+            v-model="store.startDate"
             autocomplete="off"
             class="info-form__field"
             color="primary"
             density="comfortable"
             hide-details="auto"
-            :label="t('admin.newEvent.form.date')"
+            :label="t('admin.newEvent.form.startDate')"
             prepend-inner-icon="mdi-calendar"
             rounded="xl"
             type="date"
+            variant="outlined"
+          />
+        </v-col>
+
+        <v-col cols="12" md="6">
+          <v-text-field
+            v-model="store.startTime"
+            autocomplete="off"
+            class="info-form__field"
+            color="primary"
+            density="comfortable"
+            hide-details="auto"
+            :label="t('admin.newEvent.form.startTime')"
+            prepend-inner-icon="mdi-clock-outline"
+            rounded="xl"
+            type="time"
+            variant="outlined"
+          />
+        </v-col>
+
+        <v-col cols="12" md="6">
+          <v-text-field
+            v-model="store.endDate"
+            autocomplete="off"
+            class="info-form__field"
+            color="primary"
+            density="comfortable"
+            hide-details="auto"
+            :label="t('admin.newEvent.form.endDate')"
+            prepend-inner-icon="mdi-calendar-end"
+            rounded="xl"
+            type="date"
+            variant="outlined"
+          />
+        </v-col>
+
+        <v-col cols="12" md="6">
+          <v-text-field
+            v-model="store.endTime"
+            autocomplete="off"
+            class="info-form__field"
+            color="primary"
+            density="comfortable"
+            hide-details="auto"
+            :label="t('admin.newEvent.form.endTime')"
+            prepend-inner-icon="mdi-clock-outline"
+            rounded="xl"
+            type="time"
             variant="outlined"
           />
         </v-col>
@@ -172,94 +304,52 @@
             variant="outlined"
           />
         </v-col>
+
+        <!-- Coordinates -->
+        <v-col cols="12">
+          <p class="coordinates-label">
+            <span class="mdi mdi-map-marker-radius" />
+            {{ t('admin.newEvent.form.coordinatesTitle') }}
+          </p>
+        </v-col>
+
+        <v-col cols="12" md="6">
+          <v-text-field
+            v-model="store.latitude"
+            autocomplete="off"
+            class="info-form__field"
+            color="primary"
+            density="comfortable"
+            hide-details="auto"
+            inputmode="decimal"
+            :label="t('admin.newEvent.form.latitude')"
+            :placeholder="t('admin.newEvent.form.latitudePlaceholder')"
+            prepend-inner-icon="mdi-latitude"
+            rounded="xl"
+            variant="outlined"
+          />
+        </v-col>
+
+        <v-col cols="12" md="6">
+          <v-text-field
+            v-model="store.longitude"
+            autocomplete="off"
+            class="info-form__field"
+            color="primary"
+            density="comfortable"
+            hide-details="auto"
+            inputmode="decimal"
+            :label="t('admin.newEvent.form.longitude')"
+            :placeholder="t('admin.newEvent.form.longitudePlaceholder')"
+            prepend-inner-icon="mdi-longitude"
+            rounded="xl"
+            variant="outlined"
+          />
+        </v-col>
       </v-row>
     </v-form>
   </section>
 </template>
-
-<script setup lang="ts">
-  import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-  import { useI18n } from 'vue-i18n'
-  import { useCreateEventStore } from '@/stores/createEvent'
-
-  const { t } = useI18n()
-  const store = useCreateEventStore()
-
-  const descriptionRef = ref<HTMLElement | null>(null)
-  const emojiPickerRef = ref<HTMLElement | null>(null)
-  const showEmojiPicker = ref(false)
-  const activeCategory = ref('smileys')
-
-  const emojiCategories = [
-    {
-      name: 'smileys',
-      label: 'Smileys',
-      icon: '😀',
-      emojis: ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😋', '😛', '😜', '🤪', '😝', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '😮‍💨', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🥴', '😵', '🤯', '🤠', '🥳', '🥸', '😎', '🤓', '🧐'],
-    },
-    {
-      name: 'gestures',
-      label: 'Gestos',
-      icon: '👋',
-      emojis: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁️', '👅', '👄'],
-    },
-    {
-      name: 'party',
-      label: 'Festa',
-      icon: '🎉',
-      emojis: ['🎉', '🎊', '🎈', '🎁', '🎀', '🎂', '🍰', '🧁', '🥂', '🍾', '🥳', '🪅', '🪩', '🎤', '🎧', '🎵', '🎶', '🎹', '🥁', '🎷', '🎺', '🎸', '🪕', '🎻', '🎬', '🎭', '🎪', '🎨', '🎯', '🎮', '🕺', '💃', '🪩', '✨', '💫', '🌟', '⭐', '🔥', '💥', '💯', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💖', '💝', '💕', '💞', '💓', '💗', '💘'],
-    },
-    {
-      name: 'food',
-      label: 'Comida',
-      icon: '🍕',
-      emojis: ['🍕', '🍔', '🍟', '🌭', '🍿', '🧂', '🥓', '🥚', '🍳', '🧇', '🥞', '🧈', '🍞', '🥐', '🥨', '🥯', '🥖', '🧀', '🍖', '🍗', '🥩', '🥓', '🌮', '🌯', '🫔', '🥙', '🧆', '🥗', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🦪', '🍤', '🍙', '🍚', '🍘', '🍥', '🥠', '🥮', '🍧', '🍨', '🍦', '🥧', '🧁', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫', '🍩', '🍪'],
-    },
-    {
-      name: 'nature',
-      label: 'Natureza',
-      icon: '🌸',
-      emojis: ['🌸', '💮', '🏵️', '🌹', '🥀', '🌺', '🌻', '🌼', '🌷', '🌱', '🪴', '🌲', '🌳', '🌴', '🌵', '🌾', '🌿', '☘️', '🍀', '🍁', '🍂', '🍃', '🪺', '🪹', '🍄', '🌰', '🦀', '🦞', '🦐', '🦑', '🦪', '🐚', '🐌', '🦋', '🐛', '🐜', '🐝', '🐞', '🦗', '🪲', '🪳', '🪰', '🪱', '🦟', '☀️', '🌤️', '⛅', '🌥️', '☁️', '🌦️', '🌧️', '🌈', '⚡', '❄️', '🌙', '⭐', '🌟'],
-    },
-    {
-      name: 'symbols',
-      label: 'Símbolos',
-      icon: '💯',
-      emojis: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❤️‍🔥', '❤️‍🩹', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💯'],
-    },
-  ]
-
-  const currentEmojis = computed(() => {
-    const category = emojiCategories.find(c => c.name === activeCategory.value)
-    return category ? category.emojis : []
-  })
-
-  function toggleEmojiPicker () {
-    showEmojiPicker.value = !showEmojiPicker.value
-  }
-
-  function insertEmoji (emoji: string) {
-    store.description = (store.description || '') + emoji
-  }
-
-  function handleClickOutside (event: MouseEvent) {
-    if (
-      emojiPickerRef.value
-      && !emojiPickerRef.value.contains(event.target as Node)
-      && !(event.target as Element).closest('.emoji-trigger')
-    ) {
-      showEmojiPicker.value = false
-    }
-  }
-
-  onMounted(() => {
-    document.addEventListener('click', handleClickOutside)
-  })
-
-  onBeforeUnmount(() => {
-    document.removeEventListener('click', handleClickOutside)
-  })
-</script>
 
 <style scoped>
 .info-form {
@@ -288,6 +378,22 @@
 :deep(.info-form__field .v-label) {
   font-weight: 600;
   color: #5c5c6d;
+}
+
+/* Coordinates Section */
+.coordinates-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #5c5c6d;
+  margin: 4px 0 0;
+}
+
+.coordinates-label .mdi {
+  font-size: 18px;
+  color: #b46cff;
 }
 
 /* Description with Emoji Picker */

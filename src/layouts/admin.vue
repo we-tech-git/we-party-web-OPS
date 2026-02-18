@@ -11,6 +11,9 @@
         </div>
         <div class="admin-header__actions">
           <LanguageSwitcher data-tour="language-switcher" />
+          <button class="admin-logout-btn" title="Sair" type="button" @click="handleLogout">
+            🚪 Sair
+          </button>
           <div class="admin-header__avatar">
             <input
               ref="avatarInputRef"
@@ -146,6 +149,8 @@
   import GuidedTour from '@/components/GuidedTour.vue'
   import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
   import { useTour } from '@/composables/useTour'
+  import router from '@/router'
+  import { AuthService } from '@/services/auth'
 
   const emit = defineEmits<{
     (e: 'avatar-change', file: File | null): void
@@ -167,6 +172,11 @@
 
   function onTourSkip () {
     console.log('Tour skipped')
+  }
+
+  function handleLogout () {
+    AuthService.logout()
+    router.push('/public/login')
   }
 
   const defaultAvatar = 'https://cdn.vuetifyjs.com/images/john.jpg'
@@ -335,6 +345,23 @@
   display: inline-flex;
   gap: 20px;
   justify-self: end;
+}
+
+.admin-logout-btn {
+  background: transparent;
+  border: 1px solid #e74c3c;
+  border-radius: 8px;
+  color: #e74c3c;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 8px 16px;
+  transition: all 0.2s ease;
+}
+
+.admin-logout-btn:hover {
+  background: #e74c3c;
+  color: white;
 }
 
 .admin-title__separator {

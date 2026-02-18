@@ -1,3 +1,164 @@
+<script setup lang="ts">
+  import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+  import { useI18n } from 'vue-i18n'
+  import { getUserRecomendations } from '@/services/users'
+  import { useCreateEventStore } from '@/stores/createEvent'
+
+  const { t } = useI18n()
+  const store = useCreateEventStore()
+
+  const emit = defineEmits<{
+    (e: 'privacy-change', value: 'public' | 'followers'): void
+    (e: 'comments-change' | 'main-feed-change', value: 'no' | 'yes'): void
+    (e: 'add-invite'): void
+  }>()
+
+  type Contact = { id: number | string, name: string, avatar: string }
+
+  const selectedPrivacy = computed(() => store.isPublic ? 'public' : 'followers')
+  const selectedComments = computed(() => store.allowComments ? 'yes' : 'no')
+  const selectedMainFeed = computed(() => store.showInMainFeed ? 'yes' : 'no')
+
+  const invitees = ref<Contact[]>([])
+  const availableContacts = ref<Contact[]>([])
+  const isLoadingContacts = ref(false)
+
+  // Fallback mock data caso a API falhe
+  const mockContacts: Contact[] = [
+    { id: 4, name: 'Isabela Rocha', avatar: 'https://i.pravatar.cc/100?img=51' },
+    { id: 5, name: 'Felipe Tavares', avatar: 'https://i.pravatar.cc/100?img=23' },
+    { id: 6, name: 'Camila Freitas', avatar: 'https://i.pravatar.cc/100?img=56' },
+    { id: 7, name: 'Renato Oliveira', avatar: 'https://i.pravatar.cc/100?img=2' },
+    { id: 8, name: 'Ana Vitória', avatar: 'https://i.pravatar.cc/100?img=18' },
+  ]
+
+  async function loadRecommendedContacts () {
+    isLoadingContacts.value = true
+    try {
+      const response = await getUserRecomendations()
+      const data = response?.data || response || []
+
+      availableContacts.value = Array.isArray(data) && data.length > 0
+        ? data.map((user: any) => ({
+          id: user.id || user._id,
+          name: user.name || user.username || 'Usuário',
+          avatar: user.profilePicture || user.avatar || `https://i.pravatar.cc/100?u=${user.id}`,
+        }))
+        : mockContacts
+    } catch (error) {
+      console.warn('[EventPrivacySettings] Erro ao carregar recomendações, usando dados mock:', error)
+      availableContacts.value = mockContacts
+    } finally {
+      isLoadingContacts.value = false
+    }
+  }
+
+  onMounted(() => {
+    loadRecommendedContacts()
+  })
+
+  const isModalOpen = ref(false)
+  const searchTerm = ref('')
+  const searchInputRef = ref<HTMLInputElement | null>(null)
+
+  const privacyOptions = [
+    { value: 'public', label: t('admin.newEvent.privacy.public') },
+    { value: 'followers', label: t('admin.newEvent.privacy.followers') },
+  ] as const
+
+  const commentOptions = [
+    { value: 'no', label: t('admin.newEvent.privacy.commentsNo') },
+    { value: 'yes', label: t('admin.newEvent.privacy.commentsYes') },
+  ] as const
+
+  const mainFeedOptions = [
+    { value: 'no', label: t('admin.newEvent.privacy.mainFeedNo') },
+    { value: 'yes', label: t('admin.newEvent.privacy.mainFeedYes') },
+  ] as const
+
+  function selectPrivacy (option: 'public' | 'followers') {
+    store.isPublic = (option === 'public')
+    emit('privacy-change', option)
+  }
+
+  function selectComments (option: 'no' | 'yes') {
+    store.allowComments = (option === 'yes')
+    emit('comments-change', option)
+  }
+
+  function selectMainFeed (option: 'no' | 'yes') {
+    store.showInMainFeed = (option === 'yes')
+    emit('main-feed-change', option)
+  }
+
+  function openInviteModal () {
+    searchTerm.value = ''
+    isModalOpen.value = true
+    nextTick(() => {
+      searchInputRef.value?.focus()
+    })
+  }
+
+  function closeInviteModal () {
+    isModalOpen.value = false
+  }
+
+  function addInvitee (contact: Contact) {
+    if (!isInviteeSelected(contact.id)) {
+      invitees.value = [...invitees.value, contact]
+      emit('add-invite')
+    }
+  }
+
+  function isInviteeSelected (contactId: number | string) {
+    return invitees.value.some(existing => existing.id === contactId)
+  }
+
+  function removeInvitee (contactId: number | string) {
+    invitees.value = invitees.value.filter(existing => existing.id !== contactId)
+  }
+
+  function toggleInvite (contact: Contact) {
+    if (isInviteeSelected(contact.id)) {
+      removeInvitee(contact.id)
+    } else {
+      addInvitee(contact)
+    }
+  }
+
+  const displayedInvitees = computed(() => invitees.value.slice(0, 3))
+  const remainingCount = computed(() => Math.max(0, invitees.value.length - displayedInvitees.value.length))
+  const filteredContacts = computed(() => {
+    const term = searchTerm.value.trim().toLowerCase()
+    if (!term) return availableContacts.value
+    return availableContacts.value.filter(contact => contact.name.toLowerCase().includes(term))
+  })
+
+  let previousBodyOverflow: string | null = null
+
+  function handleKeydown (event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      closeInviteModal()
+    }
+  }
+
+  watch(isModalOpen, value => {
+    if (value) {
+      previousBodyOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      document.addEventListener('keydown', handleKeydown)
+    } else {
+      document.body.style.overflow = previousBodyOverflow ?? ''
+      document.removeEventListener('keydown', handleKeydown)
+    }
+  })
+
+  onBeforeUnmount(() => {
+    document.body.style.overflow = previousBodyOverflow ?? ''
+    document.removeEventListener('keydown', handleKeydown)
+  })
+</script>
+
 <template>
   <div class="privacy-grid">
     <section class="privacy-card">
@@ -58,6 +219,23 @@
       <p class="card-description">{{ t('admin.newEvent.privacy.commentsDescription') }}</p>
     </section>
 
+    <section class="privacy-card">
+      <header class="card-title">{{ t('admin.newEvent.privacy.mainFeedTitle') }}</header>
+      <div :aria-label="t('admin.newEvent.privacy.mainFeedTitle')" class="segmented" role="group">
+        <button
+          v-for="option in mainFeedOptions"
+          :key="option.value"
+          :aria-pressed="selectedMainFeed === option.value"
+          :class="['segmented-button', { active: selectedMainFeed === option.value }]"
+          type="button"
+          @click="selectMainFeed(option.value)"
+        >
+          {{ option.label }}
+        </button>
+      </div>
+      <p class="card-description">{{ t('admin.newEvent.privacy.mainFeedDescription') }}</p>
+    </section>
+
     <Teleport to="body">
       <div
         v-if="isModalOpen"
@@ -103,133 +281,6 @@
     </Teleport>
   </div>
 </template>
-
-<script setup lang="ts">
-  import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
-  import { useI18n } from 'vue-i18n'
-  import { useCreateEventStore } from '@/stores/createEvent'
-
-  const { t } = useI18n()
-  const store = useCreateEventStore()
-
-  const emit = defineEmits<{
-    (e: 'privacy-change', value: 'public' | 'followers'): void
-    (e: 'comments-change', value: 'no' | 'yes'): void
-    (e: 'add-invite'): void
-  }>()
-
-  type Contact = { id: number, name: string, avatar: string }
-
-  const selectedPrivacy = computed(() => store.isPublic ? 'public' : 'followers')
-  const selectedComments = computed(() => store.allowComments ? 'yes' : 'no')
-
-  const invitees = ref<Contact[]>([
-    { id: 1, name: `${t('admin.newEvent.privacy.inviteAlt')} 1`, avatar: 'https://i.pravatar.cc/100?img=12' },
-    { id: 2, name: `${t('admin.newEvent.privacy.inviteAlt')} 2`, avatar: 'https://i.pravatar.cc/100?img=32' },
-    { id: 3, name: `${t('admin.newEvent.privacy.inviteAlt')} 3`, avatar: 'https://i.pravatar.cc/100?img=45' },
-  ])
-
-  const availableContacts: Contact[] = [
-    { id: 4, name: 'Isabela Rocha', avatar: 'https://i.pravatar.cc/100?img=51' },
-    { id: 5, name: 'Felipe Tavares', avatar: 'https://i.pravatar.cc/100?img=23' },
-    { id: 6, name: 'Camila Freitas', avatar: 'https://i.pravatar.cc/100?img=56' },
-    { id: 7, name: 'Renato Oliveira', avatar: 'https://i.pravatar.cc/100?img=2' },
-    { id: 8, name: 'Ana Vitória', avatar: 'https://i.pravatar.cc/100?img=18' },
-    { id: 9, name: 'Eduardo Martins', avatar: 'https://i.pravatar.cc/100?img=5' },
-    { id: 10, name: 'Marina Prado', avatar: 'https://i.pravatar.cc/100?img=62' },
-  ]
-
-  const isModalOpen = ref(false)
-  const searchTerm = ref('')
-  const searchInputRef = ref<HTMLInputElement | null>(null)
-
-  const privacyOptions = [
-    { value: 'public', label: t('admin.newEvent.privacy.public') },
-    { value: 'followers', label: t('admin.newEvent.privacy.followers') },
-  ] as const
-
-  const commentOptions = [
-    { value: 'no', label: t('admin.newEvent.privacy.commentsNo') },
-    { value: 'yes', label: t('admin.newEvent.privacy.commentsYes') },
-  ] as const
-
-  function selectPrivacy (option: 'public' | 'followers') {
-    store.isPublic = (option === 'public')
-    emit('privacy-change', option)
-  }
-
-  function selectComments (option: 'no' | 'yes') {
-    store.allowComments = (option === 'yes')
-    emit('comments-change', option)
-  }
-
-  function openInviteModal () {
-    searchTerm.value = ''
-    isModalOpen.value = true
-    nextTick(() => {
-      searchInputRef.value?.focus()
-    })
-  }
-
-  function closeInviteModal () {
-    isModalOpen.value = false
-  }
-
-  function addInvitee (contact: Contact) {
-    if (!isInviteeSelected(contact.id)) {
-      invitees.value = [...invitees.value, contact]
-      emit('add-invite')
-    }
-  }
-
-  function isInviteeSelected (contactId: number) {
-    return invitees.value.some(existing => existing.id === contactId)
-  }
-
-  function removeInvitee (contactId: number) {
-    invitees.value = invitees.value.filter(existing => existing.id !== contactId)
-  }
-
-  function toggleInvite (contact: Contact) {
-    if (isInviteeSelected(contact.id)) {
-      removeInvitee(contact.id)
-    } else {
-      addInvitee(contact)
-    }
-  }
-
-  const displayedInvitees = computed(() => invitees.value.slice(0, 3))
-  const remainingCount = computed(() => Math.max(0, invitees.value.length - displayedInvitees.value.length))
-  const filteredContacts = computed(() => {
-    const term = searchTerm.value.trim().toLowerCase()
-    if (!term) return availableContacts
-    return availableContacts.filter(contact => contact.name.toLowerCase().includes(term))
-  })
-
-  let previousBodyOverflow: string | null = null
-
-  function handleKeydown (event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      closeInviteModal()
-    }
-  }
-
-  watch(isModalOpen, value => {
-    if (value) {
-      previousBodyOverflow = document.body.style.overflow
-      document.body.style.overflow = 'hidden'
-      document.addEventListener('keydown', handleKeydown)
-    } else {
-      document.body.style.overflow = previousBodyOverflow ?? ''
-      document.removeEventListener('keydown', handleKeydown)
-    }
-  })
-
-  onBeforeUnmount(() => {
-    document.body.style.overflow = previousBodyOverflow ?? ''
-    document.removeEventListener('keydown', handleKeydown)
-  })
-</script>
 
 <style scoped>
 .privacy-grid {

@@ -1,3 +1,142 @@
+<script setup lang="ts">
+  import { computed, onMounted, ref } from 'vue'
+  import { useI18n } from 'vue-i18n'
+  import {
+    createInterest,
+    deleteInterest,
+    getInterests,
+    type Interest,
+    searchInterestsByName,
+  } from '@/services/interests'
+  import InterestsList from './InterestsList.vue'
+  import RequestsQueue from './RequestsQueue.vue'
+
+  const { t } = useI18n()
+
+  // ─── State ────────────────────────────────────────────────
+  const interests = ref<Interest[]>([])
+  const isLoading = ref(false)
+  const loadError = ref<string | null>(null)
+  const searchQuery = ref('')
+  const isSearching = ref(false)
+
+  const requests = ref<Array<{
+    id: number
+    name: string
+    requestedBy: string
+    date: string
+    time: string
+  }>>([])
+
+  // ─── Fetch interests ─────────────────────────────────────
+  async function fetchInterests () {
+    isLoading.value = true
+    loadError.value = null
+    try {
+      interests.value = await getInterests()
+    } catch {
+      loadError.value = t('admin.interests.loadError')
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // ─── Search ───────────────────────────────────────────────
+  let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+  function handleSearch (query: string) {
+    searchQuery.value = query
+
+    if (searchTimeout) {
+      clearTimeout(searchTimeout)
+    }
+
+    if (!query.trim()) {
+      fetchInterests()
+      return
+    }
+
+    searchTimeout = setTimeout(async () => {
+      isSearching.value = true
+      try {
+        interests.value = await searchInterestsByName(query.trim())
+      } catch {
+        // fallback: keep current list
+      } finally {
+        isSearching.value = false
+      }
+    }, 350)
+  }
+
+  // ─── Add Interest ─────────────────────────────────────────
+  const isAddModalOpen = ref(false)
+  const newInterestName = ref('')
+  const isAdding = ref(false)
+  const addError = ref<string | null>(null)
+
+  function openAddModal () {
+    newInterestName.value = ''
+    addError.value = null
+    isAddModalOpen.value = true
+  }
+
+  function closeAddModal () {
+    isAddModalOpen.value = false
+  }
+
+  async function addNewInterest () {
+    const name = newInterestName.value.trim()
+    if (!name) {
+      return
+    }
+
+    isAdding.value = true
+    addError.value = null
+    try {
+      const created = await createInterest(name)
+      interests.value.push(created)
+      closeAddModal()
+    } catch {
+      addError.value = t('admin.interests.addModal.error')
+    } finally {
+      isAdding.value = false
+    }
+  }
+
+  // ─── Remove Interest ─────────────────────────────────────
+  const isRemoving = ref<string | null>(null)
+
+  async function removeInterest (id: string) {
+    isRemoving.value = id
+    try {
+      await deleteInterest(id)
+      interests.value = interests.value.filter(i => i.id !== id)
+    } catch {
+      // silently fail or could show snackbar
+    } finally {
+      isRemoving.value = null
+    }
+  }
+
+  // ─── Request Queue (mock — no API yet) ────────────────────
+  function approveRequest (id: number) {
+    requests.value = requests.value.filter(r => r.id !== id)
+    // When API exists: POST /interest/requests/:id/approve
+    fetchInterests()
+  }
+
+  function rejectRequest (id: number) {
+    requests.value = requests.value.filter(r => r.id !== id)
+    // When API exists: POST /interest/requests/:id/reject
+  }
+
+  // ─── Computed ─────────────────────────────────────────────
+  const totalInterests = computed(() => interests.value.length)
+
+  // ─── Init ─────────────────────────────────────────────────
+  onMounted(fetchInterests)
+</script>
+
 <template>
   <div class="interests-page">
     <!-- Header Section -->
@@ -27,9 +166,42 @@
 
     <v-divider class="mb-8 border-opacity-10" />
 
-    <InterestsList :interests="interests" @add="openAddModal" @remove="removeInterest" />
+    <!-- Loading State -->
+    <div v-if="isLoading" class="loading-state">
+      <v-progress-circular color="primary" indeterminate size="40" />
+      <span class="ml-4 text-body-1 text-medium-emphasis">{{ t('admin.interests.loading') }}</span>
+    </div>
 
-    <RequestsQueue :requests="requests" @approve="approveRequest" @reject="rejectRequest" />
+    <!-- Error State -->
+    <div v-else-if="loadError" class="error-state">
+      <v-icon class="mr-2" color="error" icon="mdi-alert-circle" />
+      <span class="text-body-1">{{ loadError }}</span>
+      <v-btn
+        class="ml-4"
+        color="primary"
+        size="small"
+        variant="text"
+        @click="fetchInterests"
+      >
+        {{ t('admin.interests.retry') }}
+      </v-btn>
+    </div>
+
+    <!-- Interests List -->
+    <template v-else>
+      <InterestsList
+        :interests="interests"
+        :is-removing="isRemoving"
+        :is-searching="isSearching"
+        :search-query="searchQuery"
+        :total="totalInterests"
+        @add="openAddModal"
+        @remove="removeInterest"
+        @search="handleSearch"
+      />
+
+      <RequestsQueue :requests="requests" @approve="approveRequest" @reject="rejectRequest" />
+    </template>
 
     <!-- Add Interest Modal -->
     <v-dialog v-model="isAddModalOpen" max-width="400">
@@ -41,6 +213,8 @@
           <v-text-field
             v-model="newInterestName"
             autofocus
+            :disabled="isAdding"
+            :error-messages="addError ?? undefined"
             :label="t('admin.interests.addModal.label')"
             :placeholder="t('admin.interests.addModal.placeholder')"
             variant="outlined"
@@ -48,10 +222,16 @@
           />
         </v-card-text>
         <v-card-actions class="justify-end">
-          <v-btn color="grey-darken-1" variant="text" @click="closeAddModal">
+          <v-btn color="grey-darken-1" :disabled="isAdding" variant="text" @click="closeAddModal">
             {{ t('admin.interests.addModal.cancel') }}
           </v-btn>
-          <v-btn color="primary" :disabled="!newInterestName.trim()" variant="elevated" @click="addNewInterest">
+          <v-btn
+            color="primary"
+            :disabled="!newInterestName.trim() || isAdding"
+            :loading="isAdding"
+            variant="elevated"
+            @click="addNewInterest"
+          >
             {{ t('admin.interests.addModal.confirm') }}
           </v-btn>
         </v-card-actions>
@@ -59,98 +239,6 @@
     </v-dialog>
   </div>
 </template>
-
-<script setup lang="ts">
-  import { ref } from 'vue'
-  import { useI18n } from 'vue-i18n'
-  import InterestsList from './InterestsList.vue'
-  import RequestsQueue from './RequestsQueue.vue'
-
-  const { t } = useI18n()
-
-  // Enhanced Gradients Palette
-  const wePartyGradient = 'linear-gradient(270deg, #ff4f94 0%, #f9a538 90.5%)'
-
-  // Mock Data with assigned gradients
-  const interests = ref([
-    { name: 'PALESTRA', gradient: wePartyGradient },
-    { name: 'COMUNITÁRIO', gradient: wePartyGradient },
-    { name: 'ROCK', gradient: wePartyGradient },
-    { name: 'FUNK', gradient: wePartyGradient },
-    { name: 'REGGAE', gradient: wePartyGradient },
-    { name: 'TECNOLOGIA', gradient: wePartyGradient },
-    { name: 'ARTES', gradient: wePartyGradient },
-    { name: 'GASTRONOMIA', gradient: wePartyGradient },
-    { name: 'ESPORTES', gradient: wePartyGradient },
-    { name: 'CINEMA', gradient: wePartyGradient },
-  ])
-
-  const requests = ref([
-    {
-      id: 1,
-      name: 'AMAPIANO',
-      requestedBy: 'João Silva',
-      date: '12/12/2025',
-      time: '14:30',
-    },
-    {
-      id: 2,
-      name: 'K-POP',
-      requestedBy: 'Ana Costa',
-      date: '12/12/2025',
-      time: '15:45',
-    },
-    {
-      id: 3,
-      name: 'JAZZ FUSION',
-      requestedBy: 'Carlos Oliveira',
-      date: '13/12/2025',
-      time: '09:15',
-    },
-  ])
-
-  function approveRequest (id: number) {
-    const request = requests.value.find(r => r.id === id)
-    if (request) {
-      interests.value.push({
-        name: request.name,
-        gradient: wePartyGradient,
-      })
-      requests.value = requests.value.filter(r => r.id !== id)
-    }
-  }
-
-  function rejectRequest (id: number) {
-    requests.value = requests.value.filter(r => r.id !== id)
-  }
-
-  // Add Interest Logic
-  const isAddModalOpen = ref(false)
-  const newInterestName = ref('')
-
-  function openAddModal () {
-    newInterestName.value = ''
-    isAddModalOpen.value = true
-  }
-
-  function closeAddModal () {
-    isAddModalOpen.value = false
-  }
-
-  function addNewInterest () {
-    if (!newInterestName.value.trim()) return
-
-    interests.value.push({
-      name: newInterestName.value.toUpperCase(),
-      gradient: wePartyGradient,
-    })
-    closeAddModal()
-  }
-
-  function removeInterest (index: number) {
-    interests.value.splice(index, 1)
-  }
-</script>
 
 <style scoped>
 .interests-page {

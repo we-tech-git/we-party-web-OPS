@@ -9,6 +9,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AnalyticsDashboard: typeof import('./components/admin/analytics/AnalyticsDashboard.vue')['default']
+    AuthLayout: typeof import('./components/UI/AuthLayout/AuthLayout.vue')['default']
     ControlPanelDashboard: typeof import('./components/admin/control-panel/ControlPanelDashboard.vue')['default']
     DevToolsDashboard: typeof import('./components/admin/dev-tools/DevToolsDashboard.vue')['default']
     EngagementHub: typeof import('./components/admin/engagement/EngagementHub.vue')['default']
@@ -19,11 +20,13 @@ declare module 'vue' {
     FeedbacksCenter: typeof import('./components/admin/feedbacks/FeedbacksCenter.vue')['default']
     GuidedTour: typeof import('./components/GuidedTour.vue')['default']
     HomeDashboard: typeof import('./components/admin/home/HomeDashboard.vue')['default']
+    InputLabel: typeof import('./components/UI/inputLabel/InputLabel.vue')['default']
     Interests: typeof import('./components/admin/interests/index.vue')['default']
     InterestsList: typeof import('./components/admin/interests/InterestsList.vue')['default']
     InterestsManager: typeof import('./components/admin/control-panel/InterestsManager.vue')['default']
     LanguageSwitcher: typeof import('./components/LanguageSwitcher.vue')['default']
     LineupManager: typeof import('./components/admin/lineup/LineupManager.vue')['default']
+    Login: typeof import('./components/Login/Login.vue')['default']
     NewEvent: typeof import('./components/admin/new-event/index.vue')['default']
     NotificationsCenter: typeof import('./components/admin/notifications/NotificationsCenter.vue')['default']
     ParticipantsManager: typeof import('./components/admin/participants/ParticipantsManager.vue')['default']
@@ -31,6 +34,7 @@ declare module 'vue' {
     RequestsQueue: typeof import('./components/admin/interests/RequestsQueue.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Snackbar: typeof import('./components/UI/Snackbar/Snackbar.vue')['default']
     UsersManager: typeof import('./components/admin/users/UsersManager.vue')['default']
   }
 }

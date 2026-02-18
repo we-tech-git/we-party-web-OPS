@@ -90,13 +90,21 @@
       "form": {
         "name": "Nome do evento",
         "description": "Descrição",
-        "date": "Data do evento",
+        "startDate": "Data de início",
+        "startTime": "Hora de início",
+        "endDate": "Data de término",
+        "endTime": "Hora de término",
         "zip": "CEP",
         "city": "Cidade",
         "state": "Estado",
         "district": "Bairro",
         "street": "Rua",
         "number": "Número",
+        "coordinatesTitle": "Coordenadas do local",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "latitudePlaceholder": "Ex: -22.9711",
+        "longitudePlaceholder": "Ex: -43.1822",
         "addEmoji": "Adicionar emoji"
       },
       "privacy": {
@@ -115,38 +123,23 @@
         "commentsTitle": "Permitir comentário?",
         "commentsNo": "Não permitido",
         "commentsYes": "Permitido",
-        "commentsDescription": "Eventos públicos irão aparecer para o público em geral no feed de eventos, onde poderão curtir, comentar e compartilhar."
+        "commentsDescription": "Eventos públicos irão aparecer para o público em geral no feed de eventos, onde poderão curtir, comentar e compartilhar.",
+        "mainFeedTitle": "Exibir no feed principal?",
+        "mainFeedNo": "Não exibir",
+        "mainFeedYes": "Exibir",
+        "mainFeedDescription": "Quando ativado, seu evento aparecerá no feed principal para que todos possam descobri-lo."
       },
       "categories": {
         "title": "Adicione uma categoria ao seu evento",
-        "list": [
-          "Palestra",
-          "Amapiano",
-          "Mandelão",
-          "Reggae",
-          "Anos 90",
-          "Anos 80",
-          "Comunitário",
-          "Pop",
-          "Vintage",
-          "Comédia",
-          "Rock",
-          "Tabacaria",
-          "Funk",
-          "Trap",
-          "Eletrônica",
-          "Stand Up"
-        ],
-        "addMore": "Adicionar mais categorias",
-        "addMorePrompt": "Digite o nome da nova categoria",
-        "duplicateMessage": "Essa categoria já foi adicionada.",
-        "addModalTitle": "Adicionar nova categoria",
-        "addModalDescription": "Crie uma categoria personalizada para este evento.",
-        "addModalLabel": "Nome da categoria",
-        "addModalPlaceholder": "Digite o nome da categoria",
-        "addModalCancel": "Cancelar",
-        "addModalConfirm": "Adicionar",
-        "addModalRequired": "Informe um nome para a categoria."
+        "loading": "Carregando interesses...",
+        "loadError": "Não foi possível carregar os interesses.",
+        "retry": "Tentar novamente",
+        "addMore": "Buscar mais interesses",
+        "searchModalTitle": "Buscar interesses",
+        "searchModalDescription": "Pesquise e selecione interesses do banco de dados.",
+        "searchPlaceholder": "Digite para buscar...",
+        "noResults": "Nenhum interesse encontrado.",
+        "addModalCancel": "Fechar"
       },
       "submit": "Adicionar evento"
     },
@@ -158,6 +151,11 @@
       "searchPlaceholder": "Buscar interesse...",
       "add": "Adicionar",
       "remove": "Remover interesse",
+      "loading": "Carregando interesses...",
+      "loadError": "Não foi possível carregar os interesses.",
+      "retry": "Tentar novamente",
+      "noResults": "Nenhum interesse encontrado para esta busca.",
+      "emptyState": "Nenhum interesse cadastrado ainda.",
       "queueTitle": "Fila de Aprovação",
       "queueEmptyTitle": "Tudo limpo!",
       "queueEmptyDesc": "Não há solicitações pendentes no momento.",
@@ -172,7 +170,8 @@
         "label": "Nome do Interesse",
         "placeholder": "Ex: Jazz, Pintura...",
         "cancel": "Cancelar",
-        "confirm": "Adicionar"
+        "confirm": "Adicionar",
+        "error": "Erro ao adicionar interesse. Tente novamente."
       }
     },
     "analytics": {
@@ -495,5 +494,18 @@
         "description": "Alterne entre Português e Inglês conforme sua preferência."
       }
     }
+  },
+  "login": {
+    "title": "Entrar",
+    "emailPlaceholder": "E-mail",
+    "passwordPlaceholder": "Senha",
+    "rememberMe": "Lembrar-me",
+    "forgotPassword": "Esqueci minha senha",
+    "button": "Entrar",
+    "noAccount": "Não tem uma conta?",
+    "signupLink": "Cadastre-se"
+  },
+  "signup": {
+    "brandSubtitle": "O app que transforma qualquer evento em festa."
   }
 }

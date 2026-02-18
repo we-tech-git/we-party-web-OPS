@@ -1,34 +1,3 @@
-<template>
-  <section :aria-label="t('admin.newEvent.uploadAction')"
-    :class="['image-upload', { 'image-upload--has-image': hasPreview, 'image-upload--drag': isDragActive }]"
-    role="button" tabindex="0" @click="triggerFileDialog" @dragenter.prevent="handleDragEnter"
-    @dragleave="handleDragLeave" @dragover.prevent="handleDragOver" @drop.prevent="handleDrop"
-    @keydown.enter.prevent="triggerFileDialog" @keydown.space.prevent="triggerFileDialog">
-    <input ref="fileInputRef" accept="image/*" class="image-upload__input" type="file" @change="onFileChange">
-
-    <div v-if="hasPreview" class="image-upload__preview">
-      <img :alt="t('admin.newEvent.uploadPreviewAlt')" :src="previewSource ?? ''">
-      <div class="image-upload__preview-actions">
-        <button class="image-upload__action" type="button" @click.stop="triggerFileDialog">
-          {{ t('admin.newEvent.uploadChange') }}
-        </button>
-        <button class="image-upload__action image-upload__action--secondary" type="button" @click.stop="clearImage">
-          {{ t('admin.newEvent.uploadRemove') }}
-        </button>
-      </div>
-    </div>
-
-    <div v-else class="upload-content">
-      <i aria-hidden="true" class="mdi mdi-cloud-upload-outline upload-icon" />
-      <div class="upload-content__text">
-        <p class="upload-content__title">{{ t('admin.newEvent.uploadAction') }}</p>
-        <p class="upload-content__hint">{{ t('admin.newEvent.uploadDrop') }}</p>
-        <p class="upload-content__description">{{ t('admin.newEvent.uploadHint') }}</p>
-      </div>
-    </div>
-  </section>
-</template>
-
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -133,6 +102,37 @@ onBeforeUnmount(() => {
   }
 })
 </script>
+
+<template>
+  <section :aria-label="t('admin.newEvent.uploadAction')"
+    :class="['image-upload', { 'image-upload--has-image': hasPreview, 'image-upload--drag': isDragActive }]"
+    role="button" tabindex="0" @click="triggerFileDialog" @dragenter.prevent="handleDragEnter"
+    @dragleave="handleDragLeave" @dragover.prevent="handleDragOver" @drop.prevent="handleDrop"
+    @keydown.enter.prevent="triggerFileDialog" @keydown.space.prevent="triggerFileDialog">
+    <input ref="fileInputRef" accept="image/*" class="image-upload__input" type="file" @change="onFileChange">
+
+    <div v-if="hasPreview" class="image-upload__preview">
+      <img :alt="t('admin.newEvent.uploadPreviewAlt')" :src="previewSource ?? ''">
+      <div class="image-upload__preview-actions">
+        <button class="image-upload__action" type="button" @click.stop="triggerFileDialog">
+          {{ t('admin.newEvent.uploadChange') }}
+        </button>
+        <button class="image-upload__action image-upload__action--secondary" type="button" @click.stop="clearImage">
+          {{ t('admin.newEvent.uploadRemove') }}
+        </button>
+      </div>
+    </div>
+
+    <div v-else class="upload-content">
+      <i aria-hidden="true" class="mdi mdi-cloud-upload-outline upload-icon" />
+      <div class="upload-content__text">
+        <p class="upload-content__title">{{ t('admin.newEvent.uploadAction') }}</p>
+        <p class="upload-content__hint">{{ t('admin.newEvent.uploadDrop') }}</p>
+        <p class="upload-content__description">{{ t('admin.newEvent.uploadHint') }}</p>
+      </div>
+    </div>
+  </section>
+</template>
 
 <style scoped>
 .image-upload {

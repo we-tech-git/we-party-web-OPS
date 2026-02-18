@@ -90,13 +90,21 @@
       "form": {
         "name": "Event name",
         "description": "Description",
-        "date": "Event date",
+        "startDate": "Start date",
+        "startTime": "Start time",
+        "endDate": "End date",
+        "endTime": "End time",
         "zip": "ZIP code",
         "city": "City",
         "state": "State",
         "district": "District",
         "street": "Street",
         "number": "Number",
+        "coordinatesTitle": "Location coordinates",
+        "latitude": "Latitude",
+        "longitude": "Longitude",
+        "latitudePlaceholder": "E.g. -22.9711",
+        "longitudePlaceholder": "E.g. -43.1822",
         "addEmoji": "Add emoji"
       },
       "privacy": {
@@ -115,38 +123,23 @@
         "commentsTitle": "Allow comments?",
         "commentsNo": "Not allowed",
         "commentsYes": "Allowed",
-        "commentsDescription": "Public events appear in the events feed, where people can like, comment and share."
+        "commentsDescription": "Public events appear in the events feed, where people can like, comment and share.",
+        "mainFeedTitle": "Show in main feed?",
+        "mainFeedNo": "Don't show",
+        "mainFeedYes": "Show",
+        "mainFeedDescription": "When enabled, your event will appear in the main feed for everyone to discover."
       },
       "categories": {
         "title": "Add a category to your event",
-        "list": [
-          "Talk",
-          "Amapiano",
-          "Mandelão",
-          "Reggae",
-          "90s",
-          "80s",
-          "Community",
-          "Pop",
-          "Vintage",
-          "Comedy",
-          "Rock",
-          "Tobacconist",
-          "Funk",
-          "Trap",
-          "Electronic",
-          "Stand Up"
-        ],
-        "addMore": "Add more categories",
-        "addMorePrompt": "Type the new category name",
-        "duplicateMessage": "This category has already been added.",
-        "addModalTitle": "Add new category",
-        "addModalDescription": "Create a custom category for this event.",
-        "addModalLabel": "Category name",
-        "addModalPlaceholder": "Type the category name",
-        "addModalCancel": "Cancel",
-        "addModalConfirm": "Add",
-        "addModalRequired": "Please enter a category name."
+        "loading": "Loading interests...",
+        "loadError": "Could not load interests.",
+        "retry": "Try again",
+        "addMore": "Search more interests",
+        "searchModalTitle": "Search interests",
+        "searchModalDescription": "Search and select interests from the database.",
+        "searchPlaceholder": "Type to search...",
+        "noResults": "No interests found.",
+        "addModalCancel": "Close"
       },
       "submit": "Add event"
     },
@@ -158,6 +151,11 @@
       "searchPlaceholder": "Search interest...",
       "add": "Add",
       "remove": "Remove interest",
+      "loading": "Loading interests...",
+      "loadError": "Could not load interests.",
+      "retry": "Try again",
+      "noResults": "No interests found for this search.",
+      "emptyState": "No interests registered yet.",
       "queueTitle": "Approval Queue",
       "queueEmptyTitle": "All clear!",
       "queueEmptyDesc": "No pending requests at the moment.",
@@ -172,7 +170,8 @@
         "label": "Interest Name",
         "placeholder": "Ex: Jazz, Painting...",
         "cancel": "Cancel",
-        "confirm": "Add"
+        "confirm": "Add",
+        "error": "Failed to add interest. Please try again."
       }
     },
     "analytics": {
@@ -495,5 +494,18 @@
         "description": "Switch between Portuguese and English according to your preference."
       }
     }
+  },
+  "login": {
+    "title": "Sign In",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password",
+    "button": "Sign In",
+    "noAccount": "Don't have an account?",
+    "signupLink": "Sign up"
+  },
+  "signup": {
+    "brandSubtitle": "The app that turns any event into a party."
   }
 }

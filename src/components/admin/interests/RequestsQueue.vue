@@ -1,3 +1,32 @@
+<script setup lang="ts">
+  import { useI18n } from 'vue-i18n'
+
+  const { t } = useI18n()
+
+  defineProps<{
+    requests: Array<{
+      id: number
+      name: string
+      requestedBy: string
+      date: string
+      time: string
+    }>
+  }>()
+
+  const emit = defineEmits<{
+    (e: 'approve' | 'reject', id: number): void
+  }>()
+
+  function getInitials (name: string) {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase()
+  }
+</script>
+
 <template>
   <section class="requests-section">
     <div class="d-flex align-center justify-space-between mb-6">
@@ -37,13 +66,19 @@
 
         <!-- Actions -->
         <div class="request-actions">
-          <button class="action-btn reject" :title="t('admin.interests.card.reject')"
-            @click="rejectRequest(request.id)">
+          <button
+            class="action-btn reject"
+            :title="t('admin.interests.card.reject')"
+            @click="emit('reject', request.id)"
+          >
             <v-icon icon="mdi-close" size="20" />
           </button>
 
-          <button class="action-btn approve" :title="t('admin.interests.card.approve')"
-            @click="approveRequest(request.id)">
+          <button
+            class="action-btn approve"
+            :title="t('admin.interests.card.approve')"
+            @click="emit('approve', request.id)"
+          >
             <v-icon icon="mdi-check" size="20" />
           </button>
         </div>
@@ -59,54 +94,6 @@
     </div>
   </section>
 </template>
-
-<script setup lang="ts">
-import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-
-const { t } = useI18n()
-
-const requests = ref([
-  {
-    id: 1,
-    name: 'AMAPIANO',
-    requestedBy: 'João Silva',
-    date: '12/12/2025',
-    time: '14:30',
-  },
-  {
-    id: 2,
-    name: 'K-POP',
-    requestedBy: 'Ana Costa',
-    date: '12/12/2025',
-    time: '15:45',
-  },
-  {
-    id: 3,
-    name: 'JAZZ FUSION',
-    requestedBy: 'Carlos Oliveira',
-    date: '13/12/2025',
-    time: '09:15',
-  },
-])
-
-function approveRequest(id: number) {
-  requests.value = requests.value.filter(r => r.id !== id)
-}
-
-function rejectRequest(id: number) {
-  requests.value = requests.value.filter(r => r.id !== id)
-}
-
-function getInitials(name: string) {
-  return name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
-}
-</script>
 
 <style scoped>
 .requests-section {
