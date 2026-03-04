@@ -1,23 +1,38 @@
 <script setup lang="ts">
-  import { computed, ref } from 'vue'
+  import { computed, onMounted, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
+  import { useRoute, useRouter } from 'vue-router'
   import { useCreateEventStore } from '@/stores/createEvent'
   import EventCategorySelector from './EventCategorySelector.vue'
+  import EventFaqEditor from './EventFaqEditor.vue'
   import EventImageUploader from './EventImageUploader.vue'
   import EventInfoForm from './EventInfoForm.vue'
   import EventPrivacySettings from './EventPrivacySettings.vue'
 
   const { t } = useI18n()
+  const route = useRoute()
+  const router = useRouter()
   const store = useCreateEventStore()
   const showSuccessModal = ref(false)
 
+  const editId = computed(() => route.query.editId as string | undefined)
+  const isEditMode = computed(() => !!editId.value)
+
+  onMounted(async () => {
+    if (editId.value) {
+      await store.loadEventForEdit(editId.value)
+    } else {
+      store.resetForm()
+    }
+  })
+
   const isFormReady = computed(() => {
-    return !!(store.title && store.description && store.startDate && store.startTime && store.city)
+    return !!(store.title && store.startDate && store.endDate && (store.city || store.street))
   })
 
   const progressPercent = computed(() => {
     let filled = 0
-    const fields = ['title', 'description', 'startDate', 'startTime', 'endDate', 'endTime', 'city', 'state', 'district', 'street', 'latitude', 'longitude', 'photo']
+    const fields = ['title', 'description', 'startDate', 'endDate', 'city', 'street', 'photo']
     for (const field of fields) {
       if (store[field as keyof typeof store]) filled++
     }
@@ -29,7 +44,9 @@
   }
 
   async function handleSubmit () {
-    const success = await store.submitEvent()
+    const success = isEditMode.value
+      ? await store.submitUpdate(editId.value!)
+      : await store.submitEvent()
     if (success) {
       showSuccessModal.value = true
     }
@@ -38,6 +55,7 @@
   function closeSuccessModal () {
     showSuccessModal.value = false
     store.resetForm()
+    router.push('/public/admin/my-events')
   }
 </script>
 
@@ -63,6 +81,10 @@
       <EventCategorySelector />
     </transition>
 
+    <transition appear name="fade-slide">
+      <EventFaqEditor />
+    </transition>
+
     <div class="submit-row">
       <transition mode="out-in" name="scale">
         <button
@@ -73,12 +95,12 @@
           type="button"
           @click="handleSubmit"
         >
-          <span class="submit-button__text">{{ t('admin.newEvent.submit') }}</span>
+          <span class="submit-button__text">{{ isEditMode ? t('admin.newEvent.update') : t('admin.newEvent.submit') }}</span>
           <span class="submit-button__icon mdi mdi-arrow-right" />
         </button>
         <button v-else class="submit-button submit-button--loading" disabled type="button">
           <span class="loading-spinner" />
-          <span>Criando evento...</span>
+          <span>{{ isEditMode ? 'Salvando alterações...' : 'Criando evento...' }}</span>
         </button>
       </transition>
     </div>
@@ -91,8 +113,8 @@
             <div class="success-icon">
               <span class="mdi mdi-check-circle" />
             </div>
-            <h2 class="success-title">Evento criado!</h2>
-            <p class="success-text">Seu evento foi publicado com sucesso e já está disponível para visualização.</p>
+            <h2 class="success-title">{{ isEditMode ? 'Evento atualizado!' : 'Evento criado!' }}</h2>
+            <p class="success-text">{{ isEditMode ? 'As alterações foram salvas com sucesso.' : 'Seu evento foi publicado com sucesso e já está disponível para visualização.' }}</p>
             <button class="success-btn" type="button" @click="closeSuccessModal">
               Ver meus eventos
             </button>

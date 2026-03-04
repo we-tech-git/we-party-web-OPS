@@ -142,6 +142,7 @@
   import engagementIcon from '@/assets/icons/engagement.svg'
   import homeIcon from '@/assets/icons/home.svg'
   import lineupIcon from '@/assets/icons/lineup.svg'
+  import myEventsIcon from '@/assets/icons/my-events.svg'
   import newEventIcon from '@/assets/icons/new-event.svg'
   import notificationsIcon from '@/assets/icons/notifications.svg'
   import participantsIcon from '@/assets/icons/participants.svg'
@@ -192,6 +193,7 @@
   const items = computed(() => [
     { title: t('admin.nav.home'), icon: homeIcon, to: '/public/admin/home', tourId: 'nav-home' },
     { title: t('admin.nav.newEvent'), icon: newEventIcon, to: '/public/admin/new-event', tourId: 'nav-new-event' },
+    { title: t('admin.nav.myEvents'), icon: myEventsIcon, to: '/public/admin/my-events', tourId: 'nav-my-events' },
     { title: t('admin.nav.analytics'), icon: analyticsIcon, to: '/public/admin/analytics', tourId: 'nav-analytics' },
     { title: t('admin.nav.participants'), icon: participantsIcon, to: '/public/admin/participants', tourId: 'nav-participants' },
     { title: t('admin.nav.engagement'), icon: engagementIcon, to: '/public/admin/engagement', tourId: 'nav-engagement' },

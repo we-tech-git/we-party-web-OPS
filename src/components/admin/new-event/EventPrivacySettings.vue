@@ -103,9 +103,14 @@
     isModalOpen.value = false
   }
 
+  function syncInviteesToStore () {
+    store.invitedUserIds = invitees.value.map(c => String(c.id))
+  }
+
   function addInvitee (contact: Contact) {
     if (!isInviteeSelected(contact.id)) {
       invitees.value = [...invitees.value, contact]
+      syncInviteesToStore()
       emit('add-invite')
     }
   }
@@ -116,6 +121,7 @@
 
   function removeInvitee (contactId: number | string) {
     invitees.value = invitees.value.filter(existing => existing.id !== contactId)
+    syncInviteesToStore()
   }
 
   function toggleInvite (contact: Contact) {

@@ -1,8 +1,10 @@
-import axios from 'axios'
 import { defineStore } from 'pinia'
-import { STORAGE_KEY_NAME } from '@/utils/storageKeys'
+import { createEvent, createEventWithImages, getEventById, updateEvent as updateEventService } from '@/services/events'
 
-const API_BASE_URL = import.meta.env.VITE__BASE_URL || 'https://api.dev.wepartyapp.com'
+export interface Faq {
+  question: string
+  answer: string
+}
 
 interface CreateEventState {
   title: string
@@ -24,6 +26,8 @@ interface CreateEventState {
   showInMainFeed: boolean
   photo: File | null
   interestIds: string[]
+  invitedUserIds: string[]
+  faqs: Faq[]
   isLoading: boolean
   error: string | null
 }
@@ -49,6 +53,8 @@ export const useCreateEventStore = defineStore('createEvent', {
     showInMainFeed: true,
     photo: null,
     interestIds: [],
+    invitedUserIds: [],
+    faqs: [],
     isLoading: false,
     error: null,
   }),
@@ -103,12 +109,6 @@ export const useCreateEventStore = defineStore('createEvent', {
       this.error = null
 
       try {
-        const token = localStorage.getItem(STORAGE_KEY_NAME.ACCESS_TOKEN)
-        const headers: Record<string, string> = {
-          Authorization: `Bearer ${token}`,
-        }
-
-        // Se houver foto, usa endpoint com imagens (multipart/form-data)
         if (this.photo) {
           const formData = new FormData()
           formData.append('title', this.title)
@@ -130,14 +130,16 @@ export const useCreateEventStore = defineStore('createEvent', {
             formData.append('interestIds', JSON.stringify(this.interestIds))
           }
 
-          await axios.post(`${API_BASE_URL}/events/with-images`, formData, {
-            headers: {
-              ...headers,
-              'Content-Type': 'multipart/form-data',
-            },
-          })
+          if (this.invitedUserIds.length > 0) {
+            formData.append('invitedUserIds', JSON.stringify(this.invitedUserIds))
+          }
+
+          if (this.faqs.length > 0) {
+            formData.append('faqs', JSON.stringify(this.faqs))
+          }
+
+          await createEventWithImages(formData)
         } else {
-          // Sem foto, usa endpoint padrão (JSON)
           const payload = {
             title: this.title,
             description: this.description,
@@ -149,14 +151,11 @@ export const useCreateEventStore = defineStore('createEvent', {
             allowComments: this.allowComments,
             showInMainFeed: this.showInMainFeed,
             interestIds: this.interestIds.length > 0 ? this.interestIds : undefined,
+            invitedUserIds: this.invitedUserIds.length > 0 ? this.invitedUserIds : undefined,
+            faqs: this.faqs.length > 0 ? this.faqs : undefined,
           }
 
-          await axios.post(`${API_BASE_URL}/events`, payload, {
-            headers: {
-              ...headers,
-              'Content-Type': 'application/json',
-            },
-          })
+          await createEvent(payload)
         }
 
         return true
@@ -174,20 +173,98 @@ export const useCreateEventStore = defineStore('createEvent', {
       this.error = null
 
       try {
-        const token = localStorage.getItem(STORAGE_KEY_NAME.ACCESS_TOKEN)
-
-        await axios.patch(`${API_BASE_URL}/events/${eventId}`, data, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-        })
+        await updateEventService(eventId, data)
 
         return true
       } catch (error: any) {
         console.error('Failed to update event', error)
         this.error = error.response?.data?.message || error.message || 'Error updating event'
         return false
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async submitUpdate (eventId: string) {
+      this.isLoading = true
+      this.error = null
+      try {
+        const payload: Record<string, any> = {
+          title: this.title,
+          description: this.description,
+          startDate: this.startDateISO,
+          endDate: this.endDateISO,
+          location: this.locationString,
+          isPublic: this.isPublic,
+          allowComments: this.allowComments,
+          showInMainFeed: this.showInMainFeed,
+          interestIds: this.interestIds.length > 0 ? this.interestIds : undefined,
+          faqs: this.faqs.length > 0 ? this.faqs : undefined,
+        }
+        if (this.photo) {
+          const formData = new FormData()
+          Object.entries(payload).forEach(([k, v]) => {
+            if (v !== undefined) formData.append(k, typeof v === 'object' ? JSON.stringify(v) : String(v))
+          })
+          formData.append('photos', this.photo)
+          await updateEventService(eventId, formData as any)
+        } else {
+          await updateEventService(eventId, payload)
+        }
+        return true
+      } catch (error: any) {
+        console.error('Failed to update event', error)
+        this.error = error.response?.data?.message || error.message || 'Erro ao atualizar evento'
+        return false
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    async loadEventForEdit (eventId: string) {
+      this.isLoading = true
+      this.error = null
+      try {
+        const res = await getEventById(eventId) as any
+        const ev: any = res?.data ?? res
+
+        const parseDate = (iso: string) => (iso ? iso.split('T')[0] : '')
+        const parseTime = (iso: string) => {
+          if (!iso) return ''
+          const d = new Date(iso)
+          return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`
+        }
+
+        this.title = ev.title ?? ev.name ?? ''
+        this.description = ev.description ?? ''
+        const sd = ev.startDate ?? ev.start_date ?? ''
+        const ed = ev.endDate ?? ev.end_date ?? ''
+        this.startDate = parseDate(sd)
+        this.startTime = parseTime(sd) || '22:00'
+        this.endDate = parseDate(ed)
+        this.endTime = parseTime(ed) || '06:00'
+        this.isPublic = ev.isPublic ?? ev.is_public ?? true
+        this.allowComments = ev.allowComments ?? ev.allow_comments ?? true
+        this.showInMainFeed = ev.showInMainFeed ?? ev.show_in_main_feed ?? true
+        this.interestIds = ev.interestIds ?? ev.interest_ids ?? []
+        this.faqs = ev.faqs ?? []
+        this.photo = null
+
+        // Best-effort: parse location string back to fields
+        const loc: string = ev.location ?? ''
+        // Expected format: "street, number, district, city - state"
+        const dashIdx = loc.lastIndexOf(' - ')
+        const stateStr = dashIdx >= 0 ? loc.slice(dashIdx + 3).trim() : ''
+        const beforeState = dashIdx >= 0 ? loc.slice(0, dashIdx) : loc
+        const parts = beforeState.split(',').map((s: string) => s.trim())
+        this.street = parts[0] ?? ''
+        this.number = parts[1] ?? ''
+        this.district = parts[2] ?? ''
+        this.city = parts[3] ?? ''
+        this.state = stateStr
+        this.zip = ''
+      } catch (error: any) {
+        this.error = error.response?.data?.message || error.message || 'Erro ao carregar evento'
       } finally {
         this.isLoading = false
       }
@@ -213,6 +290,8 @@ export const useCreateEventStore = defineStore('createEvent', {
       this.showInMainFeed = true
       this.photo = null
       this.interestIds = []
+      this.invitedUserIds = []
+      this.faqs = []
     },
   },
 })

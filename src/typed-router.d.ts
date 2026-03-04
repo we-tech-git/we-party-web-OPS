@@ -26,6 +26,7 @@ declare module 'vue-router/auto-routes' {
     '/public/admin/home/': RouteRecordInfo<'/public/admin/home/', '/public/admin/home', Record<never, never>, Record<never, never>>,
     '/public/admin/interests/': RouteRecordInfo<'/public/admin/interests/', '/public/admin/interests', Record<never, never>, Record<never, never>>,
     '/public/admin/lineup/': RouteRecordInfo<'/public/admin/lineup/', '/public/admin/lineup', Record<never, never>, Record<never, never>>,
+    '/public/admin/my-events/': RouteRecordInfo<'/public/admin/my-events/', '/public/admin/my-events', Record<never, never>, Record<never, never>>,
     '/public/admin/new-event/': RouteRecordInfo<'/public/admin/new-event/', '/public/admin/new-event', Record<never, never>, Record<never, never>>,
     '/public/admin/notifications/': RouteRecordInfo<'/public/admin/notifications/', '/public/admin/notifications', Record<never, never>, Record<never, never>>,
     '/public/admin/participants/': RouteRecordInfo<'/public/admin/participants/', '/public/admin/participants', Record<never, never>, Record<never, never>>,
@@ -75,6 +76,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/public/admin/lineup/index.vue': {
       routes: '/public/admin/lineup/'
+      views: never
+    }
+    'src/pages/public/admin/my-events/index.vue': {
+      routes: '/public/admin/my-events/'
       views: never
     }
     'src/pages/public/admin/new-event/index.vue': {

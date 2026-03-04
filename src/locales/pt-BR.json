@@ -15,6 +15,7 @@
     "nav": {
       "home": "Home",
       "newEvent": "Novo Evento",
+      "myEvents": "Meus Eventos",
       "interests": "Interesses",
       "analytics": "Analytics",
       "participants": "Participantes",
@@ -26,6 +27,29 @@
       "feedbacks": "Feedbacks",
       "controlPanel": "Painel de Controle",
       "devTools": "DevTools"
+    },
+    "myEvents": {
+      "title": "Meus Eventos",
+      "subtitle": "Acompanhe e gerencie todos os seus eventos criados",
+      "newEvent": "Novo Evento",
+      "searchPlaceholder": "Buscar eventos...",
+      "loading": "Carregando seus eventos...",
+      "loadError": "Não foi possível carregar seus eventos. Tente novamente.",
+      "retry": "Tentar novamente",
+      "empty": "Nenhum evento encontrado",
+      "emptyDesc": "Que tal criar seu primeiro evento e começar a jornada?",
+      "upcoming": "Em breve",
+      "past": "Encerrado",
+      "public": "Público",
+      "private": "Privado",
+      "monitor": "Monitorar",
+      "edit": "Editar",
+      "comments": "Comentários",
+      "filter": {
+        "all": "Todos",
+        "upcoming": "Em breve",
+        "past": "Encerrados"
+      }
     },
     "home": {
       "heroAlt": "Evento",
@@ -130,18 +154,41 @@
         "mainFeedDescription": "Quando ativado, seu evento aparecerá no feed principal para que todos possam descobri-lo."
       },
       "categories": {
-        "title": "Adicione uma categoria ao seu evento",
-        "loading": "Carregando interesses...",
-        "loadError": "Não foi possível carregar os interesses.",
-        "retry": "Tentar novamente",
-        "addMore": "Buscar mais interesses",
-        "searchModalTitle": "Buscar interesses",
-        "searchModalDescription": "Pesquise e selecione interesses do banco de dados.",
-        "searchPlaceholder": "Digite para buscar...",
+        "title": "Interesses do evento",
+        "searchLabel": "Pesquisar interesses",
+        "searchPlaceholder": "Digite para buscar interesses...",
         "noResults": "Nenhum interesse encontrado.",
-        "addModalCancel": "Fechar"
+        "noneSelected": "Nenhum interesse selecionado ainda. Use a busca acima.",
+        "removeChip": "Remover",
+        "suggestToggle": "Não encontrou? Sugira um novo interesse",
+        "suggestDesc": "Envie sua sugestão de interesse para análise. Após aprovação pelos nossos devs, ele ficará disponível na plataforma.",
+        "suggestPlaceholder": "Ex: Fotografia Analógica",
+        "suggestSend": "Enviar sugestão",
+        "suggestRequired": "Informe o nome do interesse.",
+        "suggestError": "Não foi possível enviar a sugestão. Tente novamente.",
+        "suggestSuccessMsg": "Sugestão enviada com sucesso! Aguarde aprovação.",
+        "suggestionsLabel": "Sugestões para você",
+        "refreshSuggestions": "Sortear novos"
       },
-      "submit": "Adicionar evento"
+      "faq": {
+        "title": "Perguntas Frequentes",
+        "subtitle": "Adicione dúvidas comuns que os participantes podem ter",
+        "add": "Nova pergunta",
+        "addTitle": "Adicionar pergunta",
+        "editTitle": "Editar pergunta",
+        "edit": "Editar",
+        "delete": "Excluir",
+        "empty": "Nenhuma pergunta adicionada ainda. Opcional.",
+        "questionLabel": "Pergunta",
+        "questionPlaceholder": "Ex: Como faço para adquirir meu ingresso?",
+        "answerLabel": "Resposta",
+        "answerPlaceholder": "Escreva a resposta para esta dúvida...",
+        "required": "Preencha a pergunta e a resposta.",
+        "cancel": "Cancelar",
+        "save": "Salvar"
+      },
+      "submit": "Adicionar evento",
+      "update": "Salvar alterações"
     },
     "interests": {
       "title": "Gerenciar Interesses",

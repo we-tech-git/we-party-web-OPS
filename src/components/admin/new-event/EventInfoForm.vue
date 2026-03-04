@@ -305,47 +305,6 @@
           />
         </v-col>
 
-        <!-- Coordinates -->
-        <v-col cols="12">
-          <p class="coordinates-label">
-            <span class="mdi mdi-map-marker-radius" />
-            {{ t('admin.newEvent.form.coordinatesTitle') }}
-          </p>
-        </v-col>
-
-        <v-col cols="12" md="6">
-          <v-text-field
-            v-model="store.latitude"
-            autocomplete="off"
-            class="info-form__field"
-            color="primary"
-            density="comfortable"
-            hide-details="auto"
-            inputmode="decimal"
-            :label="t('admin.newEvent.form.latitude')"
-            :placeholder="t('admin.newEvent.form.latitudePlaceholder')"
-            prepend-inner-icon="mdi-latitude"
-            rounded="xl"
-            variant="outlined"
-          />
-        </v-col>
-
-        <v-col cols="12" md="6">
-          <v-text-field
-            v-model="store.longitude"
-            autocomplete="off"
-            class="info-form__field"
-            color="primary"
-            density="comfortable"
-            hide-details="auto"
-            inputmode="decimal"
-            :label="t('admin.newEvent.form.longitude')"
-            :placeholder="t('admin.newEvent.form.longitudePlaceholder')"
-            prepend-inner-icon="mdi-longitude"
-            rounded="xl"
-            variant="outlined"
-          />
-        </v-col>
       </v-row>
     </v-form>
   </section>
@@ -380,20 +339,19 @@
   color: #5c5c6d;
 }
 
-/* Coordinates Section */
-.coordinates-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #5c5c6d;
-  margin: 4px 0 0;
+/* Date / Time native controls: troca azul do browser pelo rosa da marca */
+:deep(.info-form__field input[type='date']),
+:deep(.info-form__field input[type='time']) {
+  accent-color: #ff4f8b;
+  color-scheme: light;
 }
 
-.coordinates-label .mdi {
-  font-size: 18px;
-  color: #b46cff;
+:deep(.info-form__field input[type='date']::-webkit-calendar-picker-indicator),
+:deep(.info-form__field input[type='time']::-webkit-calendar-picker-indicator) {
+  filter: invert(31%) sepia(90%) saturate(800%) hue-rotate(290deg) brightness(1.1);
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px;
 }
 
 /* Description with Emoji Picker */

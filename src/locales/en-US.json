@@ -15,6 +15,7 @@
     "nav": {
       "home": "Home",
       "newEvent": "New Event",
+      "myEvents": "My Events",
       "interests": "Interests",
       "analytics": "Analytics",
       "participants": "Participants",
@@ -26,6 +27,29 @@
       "feedbacks": "Feedbacks",
       "controlPanel": "Control Panel",
       "devTools": "DevTools"
+    },
+    "myEvents": {
+      "title": "My Events",
+      "subtitle": "Track and manage all your created events",
+      "newEvent": "New Event",
+      "searchPlaceholder": "Search events...",
+      "loading": "Loading your events...",
+      "loadError": "Could not load your events. Please try again.",
+      "retry": "Try again",
+      "empty": "No events found",
+      "emptyDesc": "Why not create your first event and start the journey?",
+      "upcoming": "Upcoming",
+      "past": "Ended",
+      "public": "Public",
+      "private": "Private",
+      "monitor": "Monitor",
+      "edit": "Edit",
+      "comments": "Comments",
+      "filter": {
+        "all": "All",
+        "upcoming": "Upcoming",
+        "past": "Ended"
+      }
     },
     "home": {
       "heroAlt": "Event",
@@ -130,18 +154,41 @@
         "mainFeedDescription": "When enabled, your event will appear in the main feed for everyone to discover."
       },
       "categories": {
-        "title": "Add a category to your event",
-        "loading": "Loading interests...",
-        "loadError": "Could not load interests.",
-        "retry": "Try again",
-        "addMore": "Search more interests",
-        "searchModalTitle": "Search interests",
-        "searchModalDescription": "Search and select interests from the database.",
-        "searchPlaceholder": "Type to search...",
+        "title": "Event interests",
+        "searchLabel": "Search interests",
+        "searchPlaceholder": "Type to search interests...",
         "noResults": "No interests found.",
-        "addModalCancel": "Close"
+        "noneSelected": "No interests selected yet. Use the search above.",
+        "removeChip": "Remove",
+        "suggestToggle": "Not found? Suggest a new interest",
+        "suggestDesc": "Submit your interest suggestion for review. After approval by our devs, it will be available on the platform.",
+        "suggestPlaceholder": "e.g. Analog Photography",
+        "suggestSend": "Send suggestion",
+        "suggestRequired": "Please enter the interest name.",
+        "suggestError": "Could not send the suggestion. Please try again.",
+        "suggestSuccessMsg": "Suggestion sent successfully! Pending approval.",
+        "suggestionsLabel": "Suggestions for you",
+        "refreshSuggestions": "Shuffle new ones"
       },
-      "submit": "Add event"
+      "faq": {
+        "title": "Frequently Asked Questions",
+        "subtitle": "Add common questions attendees may have",
+        "add": "New question",
+        "addTitle": "Add question",
+        "editTitle": "Edit question",
+        "edit": "Edit",
+        "delete": "Delete",
+        "empty": "No questions added yet. Optional.",
+        "questionLabel": "Question",
+        "questionPlaceholder": "e.g. How do I get my ticket?",
+        "answerLabel": "Answer",
+        "answerPlaceholder": "Write the answer to this question...",
+        "required": "Please fill in both the question and the answer.",
+        "cancel": "Cancel",
+        "save": "Save"
+      },
+      "submit": "Add event",
+      "update": "Save changes"
     },
     "interests": {
       "title": "Manage Interests",
