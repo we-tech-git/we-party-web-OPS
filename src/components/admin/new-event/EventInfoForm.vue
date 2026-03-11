@@ -346,6 +346,16 @@
   color-scheme: light;
 }
 
+:deep(.info-form__field input[type='date']::-webkit-datetime-edit-day-field:focus),
+:deep(.info-form__field input[type='date']::-webkit-datetime-edit-month-field:focus),
+:deep(.info-form__field input[type='date']::-webkit-datetime-edit-year-field:focus),
+:deep(.info-form__field input[type='time']::-webkit-datetime-edit-hour-field:focus),
+:deep(.info-form__field input[type='time']::-webkit-datetime-edit-minute-field:focus),
+:deep(.info-form__field input[type='time']::-webkit-datetime-edit-ampm-field:focus) {
+  background-color: #ff4f8b;
+  color: #ffffff;
+}
+
 :deep(.info-form__field input[type='date']::-webkit-calendar-picker-indicator),
 :deep(.info-form__field input[type='time']::-webkit-calendar-picker-indicator) {
   filter: invert(31%) sepia(90%) saturate(800%) hue-rotate(290deg) brightness(1.1);

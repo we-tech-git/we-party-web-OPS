@@ -4,9 +4,9 @@ meta:
 </route>
 
 <template>
-    <AnalyticsDashboard />
+  <AnalyticsDashboard />
 </template>
 
 <script setup lang="ts">
-import AnalyticsDashboard from '@/components/admin/analytics/AnalyticsDashboard.vue'
+  import AnalyticsDashboard from '@/components/admin/analytics/AnalyticsDashboard.vue'
 </script>

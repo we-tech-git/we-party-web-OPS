@@ -1,148 +1,148 @@
 ﻿<script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { createInterest, getInterests, type Interest } from '@/services/interests'
-import { useCreateEventStore } from '@/stores/createEvent'
+  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+  import { useI18n } from 'vue-i18n'
+  import { createInterest, getInterests, type Interest } from '@/services/interests'
+  import { useCreateEventStore } from '@/stores/createEvent'
 
-const { t } = useI18n()
-const store = useCreateEventStore()
+  const { t } = useI18n()
+  const store = useCreateEventStore()
 
-// ─── State ────────────────────────────────────────────────────
-const allInterests = ref<Interest[]>([])
-const selectedInterests = ref<Interest[]>([])
+  // ─── State ────────────────────────────────────────────────────
+  const allInterests = ref<Interest[]>([])
+  const selectedInterests = ref<Interest[]>([])
 
-const searchQuery = ref('')
-const searchResults = ref<Interest[]>([])
-const isSearching = ref(false)
-const isDropdownOpen = ref(false)
-const searchInputRef = ref<HTMLInputElement | null>(null)
+  const searchQuery = ref('')
+  const searchResults = ref<Interest[]>([])
+  const isSearching = ref(false)
+  const isDropdownOpen = ref(false)
+  const searchInputRef = ref<HTMLInputElement | null>(null)
 
-const suggestName = ref('')
-const isSuggesting = ref(false)
-const suggestError = ref('')
-const suggestSuccess = ref(false)
-const isSuggestOpen = ref(false)
+  const suggestName = ref('')
+  const isSuggesting = ref(false)
+  const suggestError = ref('')
+  const suggestSuccess = ref(false)
+  const isSuggestOpen = ref(false)
 
-// ─── Suggested (random 5) ─────────────────────────────────────
-const suggestionPool = ref<Interest[]>([])
+  // ─── Suggested (random 5) ─────────────────────────────────────
+  const suggestionPool = ref<Interest[]>([])
 
-const suggestedInterests = computed(() =>
-  suggestionPool.value.filter(i => !isSelected(i)).slice(0, 5)
-)
+  const suggestedInterests = computed(() =>
+    suggestionPool.value.filter(i => !isSelected(i)).slice(0, 5),
+  )
 
-function refreshSuggestions() {
-  const unselected = allInterests.value.filter(i => !isSelected(i))
-  // Fisher-Yates shuffle
-  const arr = [...unselected]
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]]
+  function refreshSuggestions () {
+    const unselected = allInterests.value.filter(i => !isSelected(i))
+    // Fisher-Yates shuffle
+    const arr = [...unselected]
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j]!, arr[i]!]
+    }
+    suggestionPool.value = arr.slice(0, 5)
   }
-  suggestionPool.value = arr.slice(0, 5)
-}
 
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
+  let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
-// ─── Helpers ──────────────────────────────────────────────────
-function isSelected(interest: Interest) {
-  return selectedInterests.value.some(i => i.id === interest.id)
-}
-
-function syncStore() {
-  store.interestIds = selectedInterests.value.map(i => i.id)
-}
-
-// ─── Select / Remove ──────────────────────────────────────────
-function selectInterest(interest: Interest) {
-  if (!isSelected(interest)) {
-    selectedInterests.value = [...selectedInterests.value, interest]
-    syncStore()
+  // ─── Helpers ──────────────────────────────────────────────────
+  function isSelected (interest: Interest) {
+    return selectedInterests.value.some(i => i.id === interest.id)
   }
-  searchQuery.value = ''
-  searchResults.value = []
-  isDropdownOpen.value = false
-}
 
-function removeInterest(interest: Interest) {
-  selectedInterests.value = selectedInterests.value.filter(i => i.id !== interest.id)
-  syncStore()
-}
+  function syncStore () {
+    store.interestIds = selectedInterests.value.map(i => i.id)
+  }
 
-// ─── Search ───────────────────────────────────────────────────
-async function performSearch() {
-  const query = searchQuery.value.trim().toLowerCase()
-  if (!query) {
+  // ─── Select / Remove ──────────────────────────────────────────
+  function selectInterest (interest: Interest) {
+    if (!isSelected(interest)) {
+      selectedInterests.value = [...selectedInterests.value, interest]
+      syncStore()
+    }
+    searchQuery.value = ''
     searchResults.value = []
     isDropdownOpen.value = false
-    return
   }
-  isSearching.value = true
-  isDropdownOpen.value = true
-  try {
-    searchResults.value = allInterests.value.filter(
-      item =>
-        item.name.toLowerCase().includes(query) &&
-        !isSelected(item)
-    )
-  } finally {
-    isSearching.value = false
+
+  function removeInterest (interest: Interest) {
+    selectedInterests.value = selectedInterests.value.filter(i => i.id !== interest.id)
+    syncStore()
   }
-}
 
-watch(searchQuery, () => {
-  if (searchTimeout) clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(performSearch, 280)
-})
-
-function onSearchBlur() {
-  setTimeout(() => {
-    isDropdownOpen.value = false
-  }, 180)
-}
-
-// ─── Suggest ──────────────────────────────────────────────────
-async function submitSuggestion() {
-  const name = suggestName.value.trim()
-  if (!name) {
-    suggestError.value = t('admin.newEvent.categories.suggestRequired')
-    return
-  }
-  isSuggesting.value = true
-  suggestError.value = ''
-  try {
-    const response = await createInterest(name) as any
-    const created: Interest = response?.data ?? response
-    if (created?.id) {
-      if (!allInterests.value.some(i => i.id === created.id)) {
-        allInterests.value = [...allInterests.value, created]
-      }
-      selectInterest(created)
+  // ─── Search ───────────────────────────────────────────────────
+  async function performSearch () {
+    const query = searchQuery.value.trim().toLowerCase()
+    if (!query) {
+      searchResults.value = []
+      isDropdownOpen.value = false
+      return
     }
-    suggestSuccess.value = true
-    suggestName.value = ''
-    setTimeout(() => {
-      suggestSuccess.value = false
-      isSuggestOpen.value = false
-    }, 2400)
-  } catch {
-    suggestError.value = t('admin.newEvent.categories.suggestError')
-  } finally {
-    isSuggesting.value = false
+    isSearching.value = true
+    isDropdownOpen.value = true
+    try {
+      searchResults.value = allInterests.value.filter(
+        item =>
+          item.name.toLowerCase().includes(query)
+          && !isSelected(item),
+      )
+    } finally {
+      isSearching.value = false
+    }
   }
-}
 
-// ─── Load ─────────────────────────────────────────────────────
-onMounted(async () => {
-  try {
-    const response = await getInterests() as any
-    allInterests.value = Array.isArray(response) ? response : (response?.data || [])
-    refreshSuggestions()
-  } catch { /* silent */ }
-})
+  watch(searchQuery, () => {
+    if (searchTimeout) clearTimeout(searchTimeout)
+    searchTimeout = setTimeout(performSearch, 280)
+  })
 
-onBeforeUnmount(() => {
-  if (searchTimeout) clearTimeout(searchTimeout)
-})
+  function onSearchBlur () {
+    setTimeout(() => {
+      isDropdownOpen.value = false
+    }, 180)
+  }
+
+  // ─── Suggest ──────────────────────────────────────────────────
+  async function submitSuggestion () {
+    const name = suggestName.value.trim()
+    if (!name) {
+      suggestError.value = t('admin.newEvent.categories.suggestRequired')
+      return
+    }
+    isSuggesting.value = true
+    suggestError.value = ''
+    try {
+      const response = await createInterest(name) as any
+      const created: Interest = response?.data ?? response
+      if (created?.id) {
+        if (!allInterests.value.some(i => i.id === created.id)) {
+          allInterests.value = [...allInterests.value, created]
+        }
+        selectInterest(created)
+      }
+      suggestSuccess.value = true
+      suggestName.value = ''
+      setTimeout(() => {
+        suggestSuccess.value = false
+        isSuggestOpen.value = false
+      }, 2400)
+    } catch {
+      suggestError.value = t('admin.newEvent.categories.suggestError')
+    } finally {
+      isSuggesting.value = false
+    }
+  }
+
+  // ─── Load ─────────────────────────────────────────────────────
+  onMounted(async () => {
+    try {
+      const response = await getInterests() as any
+      allInterests.value = Array.isArray(response) ? response : (response?.data || [])
+      refreshSuggestions()
+    } catch { /* silent */ }
+  })
+
+  onBeforeUnmount(() => {
+    if (searchTimeout) clearTimeout(searchTimeout)
+  })
 </script>
 
 <template>
@@ -225,11 +225,7 @@ onBeforeUnmount(() => {
         {{ t('admin.newEvent.categories.noneSelected') }}
       </p>
       <div v-else class="chip-list">
-        <span
-          v-for="interest in selectedInterests"
-          :key="interest.id"
-          class="chip"
-        >
+        <span v-for="interest in selectedInterests" :key="interest.id" class="chip">
           {{ interest.name }}
           <button
             :aria-label="`${t('admin.newEvent.categories.removeChip')} ${interest.name}`"
@@ -244,11 +240,7 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="suggest-section">
-      <button
-        class="suggest-toggle"
-        type="button"
-        @click="isSuggestOpen = !isSuggestOpen"
-      >
+      <button class="suggest-toggle" type="button" @click="isSuggestOpen = !isSuggestOpen">
         <span class="mdi mdi-lightbulb-on-outline suggest-toggle__icon" />
         {{ t('admin.newEvent.categories.suggestToggle') }}
         <span :class="['mdi', isSuggestOpen ? 'mdi-chevron-up' : 'mdi-chevron-down', 'suggest-toggle__chevron']" />

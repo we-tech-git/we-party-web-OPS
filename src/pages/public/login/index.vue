@@ -1,10 +1,10 @@
 <!--
   Página: Login
   Rota: /public/login
-  Descrição: Página de login que utiliza o componente Login
+  Descrição: Página de login que utiliza o componente Login do auth-kit
 -->
 <script setup lang="ts">
-import LoginComponent from '@/components/Login/Login.vue'
+  import LoginComponent from '@/components/auth-kit/components/Login.vue'
 </script>
 
 <template>

@@ -57,6 +57,12 @@
     store.resetForm()
     router.push('/public/admin/my-events')
   }
+
+  const successMessage = computed(() =>
+    isEditMode.value
+      ? 'As alterações foram salvas com sucesso.'
+      : 'Seu evento foi publicado com sucesso e já está disponível para visualização.',
+  )
 </script>
 
 <template>
@@ -95,7 +101,8 @@
           type="button"
           @click="handleSubmit"
         >
-          <span class="submit-button__text">{{ isEditMode ? t('admin.newEvent.update') : t('admin.newEvent.submit') }}</span>
+          <span class="submit-button__text">{{ isEditMode ? t('admin.newEvent.update') : t('admin.newEvent.submit')
+          }}</span>
           <span class="submit-button__icon mdi mdi-arrow-right" />
         </button>
         <button v-else class="submit-button submit-button--loading" disabled type="button">
@@ -114,7 +121,7 @@
               <span class="mdi mdi-check-circle" />
             </div>
             <h2 class="success-title">{{ isEditMode ? 'Evento atualizado!' : 'Evento criado!' }}</h2>
-            <p class="success-text">{{ isEditMode ? 'As alterações foram salvas com sucesso.' : 'Seu evento foi publicado com sucesso e já está disponível para visualização.' }}</p>
+            <p class="success-text">{{ successMessage }}</p>
             <button class="success-btn" type="button" @click="closeSuccessModal">
               Ver meus eventos
             </button>

@@ -200,6 +200,12 @@ export function deleteEventComment (eventId: string, commentId: string) {
   return callApi('DELETE', `/events/${eventId}/comments/${commentId}`, undefined, true)
 }
 
+// Cria um comentário (admin reply)
+// ENDPOINT: POST /events/{eventId}/comments
+export function createEventComment (eventId: string, content: string) {
+  return callApi<EventComment>('POST', `/events/${eventId}/comments`, { content }, true)
+}
+
 // Atualiza um comentário
 // ENDPOINT: PUT /events/{eventId}/comments/{commentId}
 export function updateEventComment (eventId: string, commentId: string, content: string) {

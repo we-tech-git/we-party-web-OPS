@@ -1,18 +1,23 @@
 <script setup lang="ts">
   import { onMounted, ref } from 'vue'
-  import { deleteEventComment, type EventComment, getEventComments, updateEventComment } from '@/services/events'
+  import { createEventComment, deleteEventComment, type EventComment, getEventComments } from '@/services/events'
 
   const props = defineProps<{ eventId: string, eventTitle: string }>()
   const emit = defineEmits<{ (e: 'close'): void }>()
 
-  const comments = ref<EventComment[]>([])
+  interface LocalComment extends EventComment {
+    _deleted?: boolean
+    _isAdminReply?: boolean
+  }
+
+  const comments = ref<LocalComment[]>([])
   const isLoading = ref(false)
   const loadError = ref('')
-  const editingId = ref<string | null>(null)
-  const editingContent = ref('')
   const deletingId = ref<string | null>(null)
-  const savingId = ref<string | null>(null)
   const searchQuery = ref('')
+  const replyingToId = ref<string | null>(null)
+  const replyContent = ref('')
+  const postingReplyId = ref<string | null>(null)
 
   async function fetchComments () {
     isLoading.value = true
@@ -36,9 +41,6 @@
         list = res.items
       }
 
-      console.log('[Comments] parsed list:', list.length, list)
-
-      // normalize: backend can return user data nested or flat
       comments.value = list.map((c: any) => ({
         id: c.id ?? c._id ?? '',
         eventId: c.eventId ?? c.event_id ?? props.eventId,
@@ -48,6 +50,7 @@
         content: c.content ?? c.text ?? c.message ?? c.body ?? '',
         createdAt: c.createdAt ?? c.created_at ?? c.date ?? '',
         updatedAt: c.updatedAt ?? c.updated_at ?? '',
+        _isAdminReply: c._isAdminReply ?? false,
       }))
     } catch (error: any) {
       console.error('[Comments] fetch error:', error?.response?.status, error?.response?.data || error)
@@ -57,40 +60,52 @@
     }
   }
 
-  function startEdit (comment: EventComment) {
-    editingId.value = comment.id
-    editingContent.value = comment.content
-  }
-
-  function cancelEdit () {
-    editingId.value = null
-    editingContent.value = ''
-  }
-
-  async function saveEdit (comment: EventComment) {
-    if (!editingContent.value.trim()) return
-    savingId.value = comment.id
-    try {
-      await updateEventComment(props.eventId, comment.id, editingContent.value.trim())
-      const idx = comments.value.findIndex(c => c.id === comment.id)
-      if (idx !== -1) comments.value[idx] = { ...comments.value[idx], content: editingContent.value.trim() } as EventComment
-      cancelEdit()
-    } catch {
-      // silently ignore; could add toast
-    } finally {
-      savingId.value = null
-    }
-  }
-
   async function deleteComment (id: string) {
     deletingId.value = id
     try {
       await deleteEventComment(props.eventId, id)
-      comments.value = comments.value.filter(c => c.id !== id)
+      const idx = comments.value.findIndex(c => c.id === id)
+      if (idx !== -1) comments.value[idx] = { ...comments.value[idx]!, _deleted: true }
     } catch {
       // silently ignore
     } finally {
       deletingId.value = null
+    }
+  }
+
+  function toggleReply (id: string) {
+    if (replyingToId.value === id) {
+      replyingToId.value = null
+      replyContent.value = ''
+    } else {
+      replyingToId.value = id
+      replyContent.value = ''
+    }
+  }
+
+  async function postReply (comment: LocalComment) {
+    if (!replyContent.value.trim()) return
+    postingReplyId.value = comment.id
+    try {
+      const res = await createEventComment(props.eventId, replyContent.value.trim()) as any
+      const newComment: LocalComment = {
+        id: res?.id ?? res?.data?.id ?? String(Date.now()),
+        eventId: props.eventId,
+        userId: 'admin',
+        userName: 'Administrador',
+        userAvatar: null,
+        content: replyContent.value.trim(),
+        createdAt: new Date().toISOString(),
+        _isAdminReply: true,
+      }
+      const idx = comments.value.findIndex(c => c.id === comment.id)
+      comments.value.splice(idx + 1, 0, newComment)
+      replyingToId.value = null
+      replyContent.value = ''
+    } catch {
+      // silently ignore
+    } finally {
+      postingReplyId.value = null
     }
   }
 
@@ -170,15 +185,13 @@
         v-for="comment in filteredComments()"
         :key="comment.id"
         class="cp-item"
-        :class="{ 'cp-item--editing': editingId === comment.id }"
+        :class="{ 'cp-item--admin': comment._isAdminReply, 'cp-item--deleted': comment._deleted }"
       >
         <!-- Avatar -->
-        <img
-          v-if="comment.userAvatar"
-          :alt="comment.userName"
-          class="cp-avatar"
-          :src="comment.userAvatar"
-        >
+        <div v-if="comment._isAdminReply" class="cp-avatar cp-avatar--admin">
+          <span class="mdi mdi-shield-account" />
+        </div>
+        <img v-else-if="comment.userAvatar" :alt="comment.userName" class="cp-avatar" :src="comment.userAvatar">
         <div v-else class="cp-avatar cp-avatar--placeholder">
           <span class="mdi mdi-account" />
         </div>
@@ -186,51 +199,60 @@
         <!-- Body -->
         <div class="cp-body">
           <div class="cp-meta">
-            <span class="cp-username">{{ comment.userName || 'Usuário' }}</span>
+            <span class="cp-username">{{ comment._isAdminReply ? 'Administrador' : (comment.userName || 'Usuário') }}</span>
+            <span v-if="comment._isAdminReply" class="cp-admin-badge">Admin</span>
             <span class="cp-date">{{ formatDate(comment.createdAt) }}</span>
           </div>
 
-          <!-- Edit mode -->
-          <div v-if="editingId === comment.id" class="cp-edit-row">
+          <!-- Deleted placeholder -->
+          <p v-if="comment._deleted" class="cp-content cp-content--deleted">
+            <span class="mdi mdi-trash-can-outline" />
+            Mensagem apagada pelo administrador do evento.
+          </p>
+
+          <!-- Normal content -->
+          <p v-else class="cp-content">{{ comment.content }}</p>
+
+          <!-- Reply box -->
+          <div v-if="replyingToId === comment.id" class="cp-reply-box">
             <textarea
-              v-model="editingContent"
+              v-model="replyContent"
               class="cp-textarea"
+              placeholder="Escreva sua resposta..."
               rows="3"
             />
-            <div class="cp-edit-actions">
+            <div class="cp-reply-actions">
               <button
                 class="cp-btn cp-btn--save"
-                :disabled="savingId === comment.id"
+                :disabled="!replyContent.trim() || postingReplyId === comment.id"
                 type="button"
-                @click="saveEdit(comment)"
+                @click="postReply(comment)"
               >
-                <span class="mdi" :class="savingId === comment.id ? 'mdi-loading mdi-spin' : 'mdi-check'" />
-                Salvar
+                <span class="mdi" :class="postingReplyId === comment.id ? 'mdi-loading mdi-spin' : 'mdi-send'" />
+                Responder
               </button>
-              <button class="cp-btn cp-btn--cancel" type="button" @click="cancelEdit">
+              <button class="cp-btn cp-btn--cancel" type="button" @click="toggleReply(comment.id)">
                 Cancelar
               </button>
             </div>
           </div>
-
-          <!-- Read mode -->
-          <p v-else class="cp-content">{{ comment.content }}</p>
         </div>
 
         <!-- Actions -->
-        <div v-if="editingId !== comment.id" class="cp-actions">
+        <div v-if="!comment._deleted" class="cp-actions">
           <button
-            class="cp-action cp-action--edit"
-            title="Editar"
+            v-if="!comment._isAdminReply"
+            class="cp-action cp-action--reply"
+            title="Responder"
             type="button"
-            @click="startEdit(comment)"
+            @click="toggleReply(comment.id)"
           >
-            <span class="mdi mdi-pencil-outline" />
+            <span class="mdi mdi-reply" />
           </button>
           <button
             class="cp-action cp-action--delete"
             :disabled="deletingId === comment.id"
-            title="Excluir"
+            title="Apagar"
             type="button"
             @click="deleteComment(comment.id)"
           >
@@ -430,8 +452,14 @@
   background: rgba(244, 244, 251, 0.8);
 }
 
-.cp-item--editing {
-  background: rgba(255, 79, 148, 0.04);
+.cp-item--admin {
+  background: rgba(255, 79, 148, 0.03);
+  border-left: 3px solid rgba(255, 79, 148, 0.3);
+  padding-left: 21px;
+}
+
+.cp-item--deleted {
+  opacity: 0.6;
 }
 
 /* Avatar */
@@ -452,6 +480,15 @@
   font-size: 18px;
 }
 
+.cp-avatar--admin {
+  background: linear-gradient(135deg, #ff4f94 0%, #f9a538 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 18px;
+}
+
 /* Body */
 .cp-body {
   flex: 1;
@@ -463,12 +500,24 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 4px;
+  flex-wrap: wrap;
 }
 
 .cp-username {
   font-size: 13px;
   font-weight: 700;
   color: #2d2d3a;
+}
+
+.cp-admin-badge {
+  background: linear-gradient(270deg, #ff4f94 0%, #f9a538 90.5%);
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  text-transform: uppercase;
 }
 
 .cp-date {
@@ -484,11 +533,20 @@
   word-break: break-word;
 }
 
-/* Edit */
-.cp-edit-row {
+.cp-content--deleted {
+  color: #aaaabc;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Reply box */
+.cp-reply-box {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-top: 10px;
 }
 
 .cp-textarea {
@@ -502,6 +560,7 @@
   padding: 10px 12px;
   resize: vertical;
   transition: border-color 0.2s;
+  box-sizing: border-box;
 }
 
 .cp-textarea:focus {
@@ -509,7 +568,7 @@
   outline: none;
 }
 
-.cp-edit-actions {
+.cp-reply-actions {
   display: flex;
   gap: 8px;
 }
@@ -529,7 +588,7 @@
 
 .cp-btn:disabled {
   opacity: 0.6;
-  cursor: wait;
+  cursor: not-allowed;
 }
 
 .cp-btn--save {
@@ -575,7 +634,7 @@
   cursor: wait;
 }
 
-.cp-action--edit:hover {
+.cp-action--reply:hover {
   background: rgba(139, 107, 255, 0.1);
   color: #8b6bff;
 }

@@ -81,24 +81,14 @@
           <p class="faq-header__sub">{{ t('admin.newEvent.faq.subtitle') }}</p>
         </div>
       </div>
-      <button
-        v-if="!isFormOpen"
-        class="faq-add-btn"
-        type="button"
-        @click="openAdd"
-      >
+      <button v-if="!isFormOpen" class="faq-add-btn" type="button" @click="openAdd">
         <span class="mdi mdi-plus" />
         {{ t('admin.newEvent.faq.add') }}
       </button>
     </header>
 
     <TransitionGroup class="faq-list" name="faq-list" tag="div">
-      <div
-        v-for="(faq, index) in store.faqs"
-        :key="index"
-        class="faq-item"
-        :style="{ '--grad': gradientFor(index) }"
-      >
+      <div v-for="(faq, index) in store.faqs" :key="index" class="faq-item" :style="{ '--grad': gradientFor(index) }">
         <div class="faq-item__bar" />
         <div class="faq-item__content">
           <p class="faq-item__q">{{ faq.question }}</p>

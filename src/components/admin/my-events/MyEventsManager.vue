@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { computed, onMounted, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { type Event, getMyEvents } from '@/services/events'
+  import { deleteEvent, type Event, getMyEvents } from '@/services/events'
   import EventCommentsPanel from './EventCommentsPanel.vue'
 
   const { t } = useI18n()
@@ -12,6 +12,8 @@
   const searchQuery = ref('')
   const filterStatus = ref<'all' | 'upcoming' | 'past'>('all')
   const commentEvent = ref<Event | null>(null)
+  const confirmDeleteEvent = ref<Event | null>(null)
+  const isDeletingId = ref<string | null>(null)
 
   // normalize field names: backend may return snake_case or different names
   function normalizeEvent (ev: any): Event {
@@ -109,6 +111,21 @@
     const pub = events.value.filter(ev => ev.isPublic).length
     return { total, upcoming, past, pub }
   })
+
+  async function handleDeleteConfirm () {
+    if (!confirmDeleteEvent.value) return
+    const id = confirmDeleteEvent.value.id
+    isDeletingId.value = id
+    try {
+      await deleteEvent(id)
+      events.value = events.value.filter(ev => ev.id !== id)
+      confirmDeleteEvent.value = null
+    } catch (error: any) {
+      console.error('[MyEvents] delete error:', error?.response?.data || error)
+    } finally {
+      isDeletingId.value = null
+    }
+  }
 
   onMounted(fetchEvents)
 </script>
@@ -223,12 +240,7 @@
       <article v-for="ev in filteredEvents" :key="ev.id" class="event-card">
         <!-- Cover -->
         <div class="event-card__cover">
-          <img
-            v-if="ev.photos && ev.photos.length > 0"
-            :alt="ev.title"
-            class="event-card__img"
-            :src="ev.photos[0]"
-          >
+          <img v-if="ev.photos && ev.photos.length > 0" :alt="ev.title" class="event-card__img" :src="ev.photos[0]">
           <div v-else class="event-card__img-placeholder">
             <span class="mdi mdi-image-outline" />
           </div>
@@ -255,42 +267,67 @@
 
           <!-- Actions -->
           <div class="event-card__actions">
-            <RouterLink
-              class="card-btn card-btn--primary"
-              :to="`/public/admin/analytics?eventId=${ev.id}`"
-            >
+            <RouterLink class="card-btn card-btn--primary" :to="`/public/admin/analytics?eventId=${ev.id}`">
               <span class="mdi mdi-chart-line" />
               {{ t('admin.myEvents.monitor') }}
             </RouterLink>
-            <button
-              class="card-btn card-btn--comments"
-              type="button"
-              @click="commentEvent = ev"
-            >
+            <button class="card-btn card-btn--comments" type="button" @click="commentEvent = ev">
               <span class="mdi mdi-comment-text-outline" />
               {{ t('admin.myEvents.comments') }}
             </button>
-            <RouterLink
-              class="card-btn card-btn--secondary"
-              :to="`/public/admin/new-event?editId=${ev.id}`"
-            >
+            <RouterLink class="card-btn card-btn--secondary" :to="`/public/admin/new-event?editId=${ev.id}`">
               <span class="mdi mdi-pencil-outline" />
               {{ t('admin.myEvents.edit') }}
             </RouterLink>
+            <button
+              class="card-btn card-btn--delete"
+              :disabled="isDeletingId === ev.id"
+              type="button"
+              @click="confirmDeleteEvent = ev"
+            >
+              <span class="mdi" :class="isDeletingId === ev.id ? 'mdi-loading mdi-spin' : 'mdi-trash-can-outline'" />
+            </button>
           </div>
         </div>
       </article>
     </div>
   </section>
 
+  <!-- Confirm Delete Modal -->
+  <Teleport to="body">
+    <Transition name="cp-modal">
+      <div v-if="confirmDeleteEvent" class="cp-modal-backdrop" @click.self="confirmDeleteEvent = null">
+        <div class="confirm-delete-dialog">
+          <span class="confirm-delete-dialog__icon mdi mdi-alert-circle-outline" />
+          <h3 class="confirm-delete-dialog__title">Excluir evento?</h3>
+          <p class="confirm-delete-dialog__desc">
+            Tem certeza que deseja excluir <strong>{{ confirmDeleteEvent.title }}</strong>? Esta ação não pode ser
+            desfeita.
+          </p>
+          <div class="confirm-delete-dialog__actions">
+            <button class="confirm-btn confirm-btn--cancel" type="button" @click="confirmDeleteEvent = null">
+              Cancelar
+            </button>
+            <button
+              class="confirm-btn confirm-btn--delete"
+              :disabled="!!isDeletingId"
+              type="button"
+              @click="handleDeleteConfirm"
+            >
+              <span v-if="isDeletingId" class="mdi mdi-loading mdi-spin" />
+              <span v-else class="mdi mdi-trash-can-outline" />
+              Excluir
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+
   <!-- Comments Modal -->
   <Teleport to="body">
     <Transition name="cp-modal">
-      <div
-        v-if="commentEvent"
-        class="cp-modal-backdrop"
-        @click.self="commentEvent = null"
-      >
+      <div v-if="commentEvent" class="cp-modal-backdrop" @click.self="commentEvent = null">
         <EventCommentsPanel
           :event-id="commentEvent.id"
           :event-title="commentEvent.title"
@@ -761,6 +798,102 @@
 
 .card-btn--comments:hover {
   background: rgba(139, 107, 255, 0.18);
+}
+
+.card-btn--delete {
+  background: rgba(216, 43, 86, 0.08);
+  color: #d82b56;
+  flex: 0 0 auto;
+  padding: 8px 10px;
+}
+
+.card-btn--delete:hover:not(:disabled) {
+  background: rgba(216, 43, 86, 0.16);
+}
+
+.card-btn--delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Confirm Delete Dialog */
+.confirm-delete-dialog {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(33, 33, 77, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 400px;
+  padding: 36px 32px 28px;
+  text-align: center;
+  width: 100%;
+}
+
+.confirm-delete-dialog__icon {
+  font-size: 48px;
+  color: #d82b56;
+  opacity: 0.9;
+}
+
+.confirm-delete-dialog__title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #2d2d3a;
+  margin: 0;
+}
+
+.confirm-delete-dialog__desc {
+  font-size: 14px;
+  color: #6b6b7b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.confirm-delete-dialog__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.confirm-btn {
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 11px 0;
+  flex: 1;
+  border: none;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.confirm-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.confirm-btn--cancel {
+  background: #f4f4fb;
+  color: #6b6b7b;
+}
+
+.confirm-btn--cancel:hover {
+  background: #ebebf5;
+}
+
+.confirm-btn--delete {
+  background: linear-gradient(135deg, #d82b56 0%, #ff4f94 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.confirm-btn--delete:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 /* Comments modal */

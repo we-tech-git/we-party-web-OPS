@@ -18,6 +18,8 @@ import { registerPlugins } from './plugins'
 import 'unfonts.css'
 // src/main.ts
 import './styles/main.css'
+// Auth-kit shared styles
+import './components/auth-kit/styles/shared-styles.css'
 
 // ... resto do código
 

@@ -183,9 +183,7 @@ export const useCreateEventStore = defineStore('createEvent', {
       } finally {
         this.isLoading = false
       }
-    },
-
-    async submitUpdate (eventId: string) {
+    }, async submitUpdate (eventId: string) {
       this.isLoading = true
       this.error = null
       try {
@@ -203,9 +201,11 @@ export const useCreateEventStore = defineStore('createEvent', {
         }
         if (this.photo) {
           const formData = new FormData()
-          Object.entries(payload).forEach(([k, v]) => {
-            if (v !== undefined) formData.append(k, typeof v === 'object' ? JSON.stringify(v) : String(v))
-          })
+          for (const [k, v] of Object.entries(payload)) {
+            if (v !== undefined) {
+              formData.append(k, typeof v === 'object' ? JSON.stringify(v) : String(v))
+            }
+          }
           formData.append('photos', this.photo)
           await updateEventService(eventId, formData as any)
         } else {
@@ -219,18 +219,18 @@ export const useCreateEventStore = defineStore('createEvent', {
       } finally {
         this.isLoading = false
       }
-    },
-
-    async loadEventForEdit (eventId: string) {
+    }, async loadEventForEdit (eventId: string) {
       this.isLoading = true
       this.error = null
       try {
         const res = await getEventById(eventId) as any
         const ev: any = res?.data ?? res
 
-        const parseDate = (iso: string) => (iso ? iso.split('T')[0] : '')
+        const parseDate = (iso: string): string => (iso ? (iso.split('T')[0] ?? '') : '')
         const parseTime = (iso: string) => {
-          if (!iso) return ''
+          if (!iso) {
+            return ''
+          }
           const d = new Date(iso)
           return `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`
         }
@@ -251,23 +251,26 @@ export const useCreateEventStore = defineStore('createEvent', {
         this.photo = null
 
         // Best-effort: parse location string back to fields
-        const loc: string = ev.location ?? ''
-        // Expected format: "street, number, district, city - state"
-        const dashIdx = loc.lastIndexOf(' - ')
-        const stateStr = dashIdx >= 0 ? loc.slice(dashIdx + 3).trim() : ''
-        const beforeState = dashIdx >= 0 ? loc.slice(0, dashIdx) : loc
-        const parts = beforeState.split(',').map((s: string) => s.trim())
-        this.street = parts[0] ?? ''
-        this.number = parts[1] ?? ''
-        this.district = parts[2] ?? ''
-        this.city = parts[3] ?? ''
-        this.state = stateStr
-        this.zip = ''
+        this._parseLocationFields(ev.location ?? '')
       } catch (error: any) {
         this.error = error.response?.data?.message || error.message || 'Erro ao carregar evento'
       } finally {
         this.isLoading = false
       }
+    },
+
+    _parseLocationFields (loc: string) {
+      // Expected format: "street, number, district, city - state"
+      const dashIdx = loc.lastIndexOf(' - ')
+      const stateStr = dashIdx === -1 ? '' : loc.slice(dashIdx + 3).trim()
+      const beforeState = dashIdx >= 0 ? loc.slice(0, dashIdx) : loc
+      const parts = beforeState.split(',').map((s: string) => s.trim())
+      this.street = parts[0] ?? ''
+      this.number = parts[1] ?? ''
+      this.district = parts[2] ?? ''
+      this.city = parts[3] ?? ''
+      this.state = stateStr
+      this.zip = ''
     },
 
     resetForm () {

@@ -1,9 +1,9 @@
 <template>
-    <ControlPanelDashboard />
+  <ControlPanelDashboard />
 </template>
 
 <script setup lang="ts">
-import ControlPanelDashboard from '@/components/admin/control-panel/ControlPanelDashboard.vue'
+  import ControlPanelDashboard from '@/components/admin/control-panel/ControlPanelDashboard.vue'
 </script>
 
 <route lang="yaml">

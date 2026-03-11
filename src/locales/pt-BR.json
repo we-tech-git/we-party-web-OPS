@@ -543,16 +543,116 @@
     }
   },
   "login": {
-    "title": "Entrar",
+    "title": "Fazer login",
+    "subtitle": "Recomendação {0} perfeita para sua {1}",
     "emailPlaceholder": "E-mail",
     "passwordPlaceholder": "Senha",
     "rememberMe": "Lembrar-me",
     "forgotPassword": "Esqueci minha senha",
     "button": "Entrar",
-    "noAccount": "Não tem uma conta?",
-    "signupLink": "Cadastre-se"
+    "noAccount": "Não tem conta?",
+    "signupLink": "Cadastre-se",
+    "errors": {
+      "required": {
+        "email": "E-mail é obrigatório",
+        "password": "Senha é obrigatória"
+      },
+      "invalid": {
+        "email": "E-mail inválido"
+      }
+    }
   },
   "signup": {
-    "brandSubtitle": "O app que transforma qualquer evento em festa."
+    "title": "Cadastro",
+    "subtitle": "Preencha os dados abaixo para começar.",
+    "brandSubtitle": "Rede social perfeita {0} para sua {1}",
+    "fullName": "Nome completo",
+    "email": "E-mail",
+    "password": "Senha",
+    "confirmPassword": "Confirmar Senha",
+    "button": "Concluir cadastro",
+    "hasAccount": "Já tem uma conta?",
+    "loginLink": "Clique para entrar",
+    "rules": {
+      "lowercase": "Pelo menos uma letra minúscula",
+      "uppercase": "Pelo menos uma letra maiúscula",
+      "minChars": "Pelo menos 10 caracteres",
+      "specialChar": "Pelo menos um caractere especial"
+    },
+    "errors": {
+      "required": {
+        "name": "Nome é obrigatório",
+        "email": "E-mail é obrigatório",
+        "password": "Senha é obrigatória",
+        "confirmPassword": "Confirmação de senha é obrigatória"
+      },
+      "passwordMismatch": "As senhas precisam ser iguais",
+      "passwordRules": "A senha precisa atender a todos os requisitos"
+    },
+    "snackbar": {
+      "missingFields": {
+        "single": "Preencha o campo: {fields}",
+        "multiple": "Preencha os campos: {fields}"
+      },
+      "invalidForm": "Revise os campos obrigatórios antes de continuar",
+      "success": "Cadastro realizado! Redirecionando para o login...",
+      "failure": "Não foi possível concluir o cadastro. Tente novamente."
+    }
+  },
+  "confirmEmail": {
+    "title": "Confirme seu e-mail",
+    "subtitle": "Digite o código de 6 dígitos que enviamos para:",
+    "pinHint": "Digite o código de verificação de 6 dígitos",
+    "didntReceive": "Não recebeu o código?",
+    "resend": "Reenviar código",
+    "resendIn": "Reenviar em {seconds}s",
+    "verify": "Verificar código",
+    "verifying": "Verificando...",
+    "success": "Email confirmado com sucesso!",
+    "invalidPin": "Código inválido. Tente novamente.",
+    "verifyError": "Erro ao verificar código. Tente novamente.",
+    "pinSent": "Código enviado com sucesso!",
+    "resendError": "Erro ao reenviar código. Tente novamente."
+  },
+  "form": {
+    "loading": "Carregando...",
+    "email": "E-mail",
+    "pin": "Código PIN",
+    "newPassword": "Nova Senha",
+    "confirmPassword": "Confirmar Nova Senha"
+  },
+  "forgotPassword": {
+    "title": "Recuperar Senha",
+    "subtitle": "Digite seu e-mail e enviaremos um código para você redefinir sua senha.",
+    "button": "Enviar Código",
+    "successMessage": "Código enviado! Verifique sua caixa de entrada.",
+    "errors": {
+      "emailRequired": "O campo de e-mail é obrigatório.",
+      "generic": "Não foi possível enviar o código. Tente novamente."
+    }
+  },
+  "verifyPin": {
+    "title": "Verificar Código",
+    "subtitle": "Enviamos o link de redefinição para o email <b>{email}</b>. <br/><br/> Basta clicar no link do email para criar uma nova senha.",
+    "button": "Verificar",
+    "btn_back_to_login": "Voltar ao login",
+    "errors": {
+      "invalidPin": "O código deve ter 6 dígitos.",
+      "generic": "Código inválido ou expirado. Tente novamente."
+    }
+  },
+  "resetPassword": {
+    "title": "Criar Nova Senha",
+    "subtitle": "Crie uma senha forte e segura.",
+    "button": "Salvar Nova Senha",
+    "tokenVerified": "Token verificado com sucesso!",
+    "successMessage": "Senha alterada com sucesso! Redirecionando para o login...",
+    "errors": {
+      "passwordMismatch": "As senhas não são iguais.",
+      "passwordTooShort": "A senha deve ter pelo menos 6 caracteres.",
+      "passwordRules": "A senha precisa atender a todos os requisitos.",
+      "invalidToken": "Token inválido ou expirado. Solicite um novo email.",
+      "generic": "Não foi possível alterar a senha. Tente novamente."
+    }
   }
 }

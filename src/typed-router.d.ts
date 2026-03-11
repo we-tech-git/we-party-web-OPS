@@ -20,7 +20,6 @@ declare module 'vue-router/auto-routes' {
   export interface RouteNamedMap {
     '/public/admin/analytics/': RouteRecordInfo<'/public/admin/analytics/', '/public/admin/analytics', Record<never, never>, Record<never, never>>,
     '/public/admin/control-panel/': RouteRecordInfo<'/public/admin/control-panel/', '/public/admin/control-panel', Record<never, never>, Record<never, never>>,
-    '/public/admin/dev-tools/': RouteRecordInfo<'/public/admin/dev-tools/', '/public/admin/dev-tools', Record<never, never>, Record<never, never>>,
     '/public/admin/engagement/': RouteRecordInfo<'/public/admin/engagement/', '/public/admin/engagement', Record<never, never>, Record<never, never>>,
     '/public/admin/feedbacks/': RouteRecordInfo<'/public/admin/feedbacks/', '/public/admin/feedbacks', Record<never, never>, Record<never, never>>,
     '/public/admin/home/': RouteRecordInfo<'/public/admin/home/', '/public/admin/home', Record<never, never>, Record<never, never>>,
@@ -32,7 +31,13 @@ declare module 'vue-router/auto-routes' {
     '/public/admin/participants/': RouteRecordInfo<'/public/admin/participants/', '/public/admin/participants', Record<never, never>, Record<never, never>>,
     '/public/admin/post-event/': RouteRecordInfo<'/public/admin/post-event/', '/public/admin/post-event', Record<never, never>, Record<never, never>>,
     '/public/admin/users/': RouteRecordInfo<'/public/admin/users/', '/public/admin/users', Record<never, never>, Record<never, never>>,
+    '/public/ConfirmEmail/': RouteRecordInfo<'/public/ConfirmEmail/', '/public/ConfirmEmail', Record<never, never>, Record<never, never>>,
+    '/public/Interest/': RouteRecordInfo<'/public/Interest/', '/public/Interest', Record<never, never>, Record<never, never>>,
     '/public/login/': RouteRecordInfo<'/public/login/', '/public/login', Record<never, never>, Record<never, never>>,
+    '/public/RequestPassword/': RouteRecordInfo<'/public/RequestPassword/', '/public/RequestPassword', Record<never, never>, Record<never, never>>,
+    '/public/ResetPassword/': RouteRecordInfo<'/public/ResetPassword/', '/public/ResetPassword', Record<never, never>, Record<never, never>>,
+    '/public/Signup/': RouteRecordInfo<'/public/Signup/', '/public/Signup', Record<never, never>, Record<never, never>>,
+    '/public/VerifyPin/': RouteRecordInfo<'/public/VerifyPin/', '/public/VerifyPin', Record<never, never>, Record<never, never>>,
   }
 
   /**
@@ -52,10 +57,6 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/public/admin/control-panel/index.vue': {
       routes: '/public/admin/control-panel/'
-      views: never
-    }
-    'src/pages/public/admin/dev-tools/index.vue': {
-      routes: '/public/admin/dev-tools/'
       views: never
     }
     'src/pages/public/admin/engagement/index.vue': {
@@ -102,8 +103,32 @@ declare module 'vue-router/auto-routes' {
       routes: '/public/admin/users/'
       views: never
     }
+    'src/pages/public/ConfirmEmail/index.vue': {
+      routes: '/public/ConfirmEmail/'
+      views: never
+    }
+    'src/pages/public/Interest/index.vue': {
+      routes: '/public/Interest/'
+      views: never
+    }
     'src/pages/public/login/index.vue': {
       routes: '/public/login/'
+      views: never
+    }
+    'src/pages/public/RequestPassword/index.vue': {
+      routes: '/public/RequestPassword/'
+      views: never
+    }
+    'src/pages/public/ResetPassword/index.vue': {
+      routes: '/public/ResetPassword/'
+      views: never
+    }
+    'src/pages/public/Signup/index.vue': {
+      routes: '/public/Signup/'
+      views: never
+    }
+    'src/pages/public/VerifyPin/index.vue': {
+      routes: '/public/VerifyPin/'
       views: never
     }
   }

@@ -1,115 +1,129 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
+  import { computed, onBeforeUnmount, ref } from 'vue'
+  import { useI18n } from 'vue-i18n'
 
-const emit = defineEmits<{
-  (e: 'change', file: File | null): void
-}>()
+  const emit = defineEmits<{
+    (e: 'change', file: File | null): void
+  }>()
 
-const { t } = useI18n()
+  const { t } = useI18n()
 
-const fileInputRef = ref<HTMLInputElement | null>(null)
-const previewSource = ref<string | null>(null)
-const isDragActive = ref(false)
-let previewObjectUrl: string | null = null
+  const fileInputRef = ref<HTMLInputElement | null>(null)
+  const previewSource = ref<string | null>(null)
+  const isDragActive = ref(false)
+  let previewObjectUrl: string | null = null
 
-const hasPreview = computed(() => Boolean(previewSource.value))
+  const hasPreview = computed(() => Boolean(previewSource.value))
 
-function triggerFileDialog() {
-  fileInputRef.value?.click()
-}
-
-function onFileChange(event: Event) {
-  const input = event.target as HTMLInputElement | null
-  if (!input?.files || !input.files[0]) {
-    return
+  function triggerFileDialog () {
+    fileInputRef.value?.click()
   }
 
-  processFile(input.files[0])
-  resetInputValue()
-}
+  function onFileChange (event: Event) {
+    const input = event.target as HTMLInputElement | null
+    if (!input?.files || !input.files[0]) {
+      return
+    }
 
-function handleDragEnter() {
-  isDragActive.value = true
-}
-
-function handleDragOver(event: DragEvent) {
-  if (event.dataTransfer) {
-    event.dataTransfer.dropEffect = 'copy'
-  }
-  isDragActive.value = true
-}
-
-function handleDragLeave(event: DragEvent) {
-  const currentTarget = event.currentTarget as HTMLElement | null
-  const related = event.relatedTarget as Node | null
-
-  if (!currentTarget || (related && currentTarget.contains(related))) {
-    return
-  }
-
-  isDragActive.value = false
-}
-
-function handleDrop(event: DragEvent) {
-  isDragActive.value = false
-  const file = event.dataTransfer?.files?.[0]
-  if (file) {
-    processFile(file)
+    processFile(input.files[0])
     resetInputValue()
   }
-}
 
-function processFile(file: File) {
-  if (!file.type.startsWith('image/')) {
-    return
+  function handleDragEnter () {
+    isDragActive.value = true
   }
 
-  const objectUrl = URL.createObjectURL(file)
-  updatePreviewSource(objectUrl, { isObjectUrl: true })
-  emit('change', file)
-}
-
-function updatePreviewSource(source: string | null, options: { isObjectUrl?: boolean } = {}) {
-  const { isObjectUrl = false } = options
-
-  if (previewObjectUrl) {
-    URL.revokeObjectURL(previewObjectUrl)
-    previewObjectUrl = null
+  function handleDragOver (event: DragEvent) {
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'copy'
+    }
+    isDragActive.value = true
   }
 
-  previewSource.value = source
-  if (isObjectUrl && source) {
-    previewObjectUrl = source
-  }
-}
+  function handleDragLeave (event: DragEvent) {
+    const currentTarget = event.currentTarget as HTMLElement | null
+    const related = event.relatedTarget as Node | null
 
-function clearImage() {
-  updatePreviewSource(null)
-  emit('change', null)
-  resetInputValue()
-}
+    if (!currentTarget || (related && currentTarget.contains(related))) {
+      return
+    }
 
-function resetInputValue() {
-  if (fileInputRef.value) {
-    fileInputRef.value.value = ''
+    isDragActive.value = false
   }
-}
 
-onBeforeUnmount(() => {
-  if (previewObjectUrl) {
-    URL.revokeObjectURL(previewObjectUrl)
+  function handleDrop (event: DragEvent) {
+    isDragActive.value = false
+    const file = event.dataTransfer?.files?.[0]
+    if (file) {
+      processFile(file)
+      resetInputValue()
+    }
   }
-})
+
+  function processFile (file: File) {
+    if (!file.type.startsWith('image/')) {
+      return
+    }
+
+    const objectUrl = URL.createObjectURL(file)
+    updatePreviewSource(objectUrl, { isObjectUrl: true })
+    emit('change', file)
+  }
+
+  function updatePreviewSource (source: string | null, options: { isObjectUrl?: boolean } = {}) {
+    const { isObjectUrl = false } = options
+
+    if (previewObjectUrl) {
+      URL.revokeObjectURL(previewObjectUrl)
+      previewObjectUrl = null
+    }
+
+    previewSource.value = source
+    if (isObjectUrl && source) {
+      previewObjectUrl = source
+    }
+  }
+
+  function clearImage () {
+    updatePreviewSource(null)
+    emit('change', null)
+    resetInputValue()
+  }
+
+  function resetInputValue () {
+    if (fileInputRef.value) {
+      fileInputRef.value.value = ''
+    }
+  }
+
+  onBeforeUnmount(() => {
+    if (previewObjectUrl) {
+      URL.revokeObjectURL(previewObjectUrl)
+    }
+  })
 </script>
 
 <template>
-  <section :aria-label="t('admin.newEvent.uploadAction')"
+  <section
+    :aria-label="t('admin.newEvent.uploadAction')"
     :class="['image-upload', { 'image-upload--has-image': hasPreview, 'image-upload--drag': isDragActive }]"
-    role="button" tabindex="0" @click="triggerFileDialog" @dragenter.prevent="handleDragEnter"
-    @dragleave="handleDragLeave" @dragover.prevent="handleDragOver" @drop.prevent="handleDrop"
-    @keydown.enter.prevent="triggerFileDialog" @keydown.space.prevent="triggerFileDialog">
-    <input ref="fileInputRef" accept="image/*" class="image-upload__input" type="file" @change="onFileChange">
+    role="button"
+    tabindex="0"
+    @click="triggerFileDialog"
+    @dragenter.prevent="handleDragEnter"
+    @dragleave="handleDragLeave"
+    @dragover.prevent="handleDragOver"
+    @drop.prevent="handleDrop"
+    @keydown.enter.prevent="triggerFileDialog"
+    @keydown.space.prevent="triggerFileDialog"
+  >
+    <input
+      ref="fileInputRef"
+      accept="image/*"
+      class="image-upload__input"
+      type="file"
+      @change="onFileChange"
+    >
 
     <div v-if="hasPreview" class="image-upload__preview">
       <img :alt="t('admin.newEvent.uploadPreviewAlt')" :src="previewSource ?? ''">

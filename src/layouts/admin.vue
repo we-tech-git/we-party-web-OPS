@@ -107,11 +107,6 @@
           </RouterLink>
         </nav>
 
-        <!-- Tour Button -->
-        <button class="admin-nav__tour-btn" type="button" @click="startGuidedTour">
-          <span class="mdi mdi-compass-outline" />
-          <span>{{ t('tour.startTour') }}</span>
-        </button>
       </aside>
 
       <main class="admin-content">
@@ -121,15 +116,6 @@
       </main>
     </div>
 
-    <!-- Guided Tour -->
-    <GuidedTour
-      ref="tourRef"
-      :auto-start="true"
-      :steps="adminTourSteps"
-      storage-key="admin-tour-completed"
-      @complete="onTourComplete"
-      @skip="onTourSkip"
-    />
   </div>
 </template>
 
@@ -138,7 +124,6 @@
   import { useI18n } from 'vue-i18n'
   import { useRoute } from 'vue-router'
   import analyticsIcon from '@/assets/icons/analytics.svg'
-  import devToolsIcon from '@/assets/icons/dev-tools.svg'
   import engagementIcon from '@/assets/icons/engagement.svg'
   import homeIcon from '@/assets/icons/home.svg'
   import lineupIcon from '@/assets/icons/lineup.svg'
@@ -147,9 +132,7 @@
   import notificationsIcon from '@/assets/icons/notifications.svg'
   import participantsIcon from '@/assets/icons/participants.svg'
   import postEventIcon from '@/assets/icons/post-event.svg'
-  import GuidedTour from '@/components/GuidedTour.vue'
   import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
-  import { useTour } from '@/composables/useTour'
   import router from '@/router'
   import { AuthService } from '@/services/auth'
 
@@ -159,22 +142,6 @@
 
   const { t } = useI18n()
   const route = useRoute()
-  const { adminTourSteps } = useTour()
-
-  const tourRef = ref<InstanceType<typeof GuidedTour> | null>(null)
-
-  function startGuidedTour () {
-    tourRef.value?.startTour()
-  }
-
-  function onTourComplete () {
-    console.log('Tour completed!')
-  }
-
-  function onTourSkip () {
-    console.log('Tour skipped')
-  }
-
   function handleLogout () {
     AuthService.logout()
     router.push('/public/login')
@@ -201,7 +168,6 @@
     { title: t('admin.nav.postEvent'), icon: postEventIcon, to: '/public/admin/post-event', tourId: 'nav-post-event' },
     { title: t('admin.nav.lineup'), icon: lineupIcon, to: '/public/admin/lineup', tourId: 'nav-lineup' },
     { title: t('admin.nav.controlPanel'), icon: analyticsIcon, to: '/public/admin/control-panel', tourId: 'nav-control-panel' },
-    { title: t('admin.nav.devTools'), icon: devToolsIcon, to: '/public/admin/dev-tools', tourId: 'nav-dev-tools' },
   ])
 
   function isActive (target: string) {
