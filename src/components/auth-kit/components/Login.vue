@@ -191,7 +191,7 @@
         showSnackbar('Login realizado com sucesso! 🎉', '#22c55e')
 
         setTimeout(() => {
-          router.push('/private/feed')
+          router.push('/public/admin/home')
         }, 1500)
       } else {
         // Extrai a mensagem de erro da resposta, como "Email não verificado"
