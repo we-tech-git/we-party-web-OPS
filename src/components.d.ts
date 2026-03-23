@@ -8,11 +8,14 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+<<<<<<< Updated upstream
     AnalyticsDashboard: typeof import('./components/admin/analytics/AnalyticsDashboard.vue')['default']
     AuthLayout: typeof import('./components/UI/AuthLayout/AuthLayout.vue')['default']
+=======
+    AuthLayout: typeof import('./components/auth-kit/components/AuthLayout.vue')['default']
+>>>>>>> Stashed changes
     ConfirmEmail: typeof import('./components/auth-kit/components/ConfirmEmail.vue')['default']
     ControlPanelDashboard: typeof import('./components/admin/control-panel/ControlPanelDashboard.vue')['default']
-    EngagementHub: typeof import('./components/admin/engagement/EngagementHub.vue')['default']
     EventCategorySelector: typeof import('./components/admin/new-event/EventCategorySelector.vue')['default']
     EventCommentsPanel: typeof import('./components/admin/my-events/EventCommentsPanel.vue')['default']
     EventFaqEditor: typeof import('./components/admin/new-event/EventFaqEditor.vue')['default']
@@ -25,14 +28,16 @@ declare module 'vue' {
     Interests: typeof import('./components/admin/interests/index.vue')['default']
     InterestsList: typeof import('./components/admin/interests/InterestsList.vue')['default']
     InterestsManager: typeof import('./components/admin/control-panel/InterestsManager.vue')['default']
+<<<<<<< Updated upstream
     LanguageSwitcher: typeof import('./components/LanguageSwitcher.vue')['default']
     LineupManager: typeof import('./components/admin/lineup/LineupManager.vue')['default']
     Login: typeof import('./components/Login/Login.vue')['default']
+=======
+    LanguageSwitcher: typeof import('./components/auth-kit/components/LanguageSwitcher.vue')['default']
+    Login: typeof import('./components/auth-kit/components/Login.vue')['default']
+>>>>>>> Stashed changes
     MyEventsManager: typeof import('./components/admin/my-events/MyEventsManager.vue')['default']
     NewEvent: typeof import('./components/admin/new-event/index.vue')['default']
-    NotificationsCenter: typeof import('./components/admin/notifications/NotificationsCenter.vue')['default']
-    ParticipantsManager: typeof import('./components/admin/participants/ParticipantsManager.vue')['default']
-    PostEventManager: typeof import('./components/admin/post-event/PostEventManager.vue')['default']
     RequestPassword: typeof import('./components/auth-kit/components/RequestPassword.vue')['default']
     RequestsQueue: typeof import('./components/admin/interests/RequestsQueue.vue')['default']
     ResetPassword: typeof import('./components/auth-kit/components/ResetPassword.vue')['default']

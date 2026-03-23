@@ -3,6 +3,7 @@
     <header class="admin-header">
       <div class="admin-header__inner">
         <div class="admin-header__brand">
+          <img alt="We Party" class="admin-brand-logo" src="/logoweparty.png">
           <h1 :aria-label="t('admin.header.brandAria')" class="admin-title">
             <span class="we-party-text">{{ t('admin.header.brandTitle') }}</span>
             <span aria-hidden="true" class="admin-title__separator">|</span>
@@ -120,21 +121,18 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+  import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useRoute } from 'vue-router'
-  import analyticsIcon from '@/assets/icons/analytics.svg'
-  import engagementIcon from '@/assets/icons/engagement.svg'
+  import devToolsIcon from '@/assets/icons/dev-tools.svg'
   import homeIcon from '@/assets/icons/home.svg'
-  import lineupIcon from '@/assets/icons/lineup.svg'
   import myEventsIcon from '@/assets/icons/my-events.svg'
   import newEventIcon from '@/assets/icons/new-event.svg'
-  import notificationsIcon from '@/assets/icons/notifications.svg'
-  import participantsIcon from '@/assets/icons/participants.svg'
-  import postEventIcon from '@/assets/icons/post-event.svg'
   import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
+  import { useCurrentUser } from '@/composables/useCurrentUser'
   import router from '@/router'
   import { AuthService } from '@/services/auth'
+  import { updateUserProfileImage } from '@/services/users'
 
   const emit = defineEmits<{
     (e: 'avatar-change', file: File | null): void
@@ -142,13 +140,14 @@
 
   const { t } = useI18n()
   const route = useRoute()
+  const { currentUser, loadUser } = useCurrentUser()
+
   function handleLogout () {
     AuthService.logout()
     router.push('/public/login')
   }
 
   const defaultAvatar = 'https://cdn.vuetifyjs.com/images/john.jpg'
-  const avatarSrc = ref<string>(defaultAvatar)
   const avatarInputRef = ref<HTMLInputElement | null>(null)
   const avatarModalRef = ref<HTMLDivElement | null>(null)
   const isAvatarModalOpen = ref(false)
@@ -157,17 +156,13 @@
   let previousFocusedElement: HTMLElement | null = null
   let avatarObjectUrl: string | null = null
 
+  const avatarSrc = computed(() => currentUser.value.avatar || defaultAvatar)
+
   const items = computed(() => [
     { title: t('admin.nav.home'), icon: homeIcon, to: '/public/admin/home', tourId: 'nav-home' },
     { title: t('admin.nav.newEvent'), icon: newEventIcon, to: '/public/admin/new-event', tourId: 'nav-new-event' },
-    { title: t('admin.nav.myEvents'), icon: myEventsIcon, to: '/public/admin/my-events', tourId: 'nav-my-events' },
-    { title: t('admin.nav.analytics'), icon: analyticsIcon, to: '/public/admin/analytics', tourId: 'nav-analytics' },
-    { title: t('admin.nav.participants'), icon: participantsIcon, to: '/public/admin/participants', tourId: 'nav-participants' },
-    { title: t('admin.nav.engagement'), icon: engagementIcon, to: '/public/admin/engagement', tourId: 'nav-engagement' },
-    { title: t('admin.nav.notifications'), icon: notificationsIcon, to: '/public/admin/notifications', tourId: 'nav-notifications' },
-    { title: t('admin.nav.postEvent'), icon: postEventIcon, to: '/public/admin/post-event', tourId: 'nav-post-event' },
-    { title: t('admin.nav.lineup'), icon: lineupIcon, to: '/public/admin/lineup', tourId: 'nav-lineup' },
-    { title: t('admin.nav.controlPanel'), icon: analyticsIcon, to: '/public/admin/control-panel', tourId: 'nav-control-panel' },
+    { title: t('admin.nav.editEvents'), icon: myEventsIcon, to: '/public/admin/my-events', tourId: 'nav-my-events' },
+    { title: t('admin.nav.controlPanel'), icon: devToolsIcon, to: '/public/admin/control-panel', tourId: 'nav-control-panel' },
   ])
 
   function isActive (target: string) {
@@ -217,29 +212,39 @@
     }
 
     const objectUrl = URL.createObjectURL(file)
-    updateAvatarSource(objectUrl, { isObjectUrl: true })
+    if (avatarObjectUrl) {
+      URL.revokeObjectURL(avatarObjectUrl)
+    }
+    avatarObjectUrl = objectUrl
+    currentUser.value.avatar = objectUrl
     emit('avatar-change', file)
     resetAvatarInput()
     closeAvatarModal()
+
+    // Envia a foto para a API
+    updateUserProfileImage(file)
+      .then((response: any) => {
+        const updated = response?.data || response
+        const newUrl = updated?.profileImage || updated?.avatar || updated?.profilePicture
+        if (newUrl) {
+          if (avatarObjectUrl) {
+            URL.revokeObjectURL(avatarObjectUrl)
+            avatarObjectUrl = null
+          }
+          currentUser.value.avatar = newUrl
+        }
+      })
+      .catch((error: any) => {
+        console.warn('[admin] Erro ao enviar foto de perfil:', error)
+      })
   }
 
-  function updateAvatarSource (source: string, options: { isObjectUrl?: boolean } = {}) {
-    const { isObjectUrl = false } = options
-
+  function handleAvatarRemove () {
     if (avatarObjectUrl) {
       URL.revokeObjectURL(avatarObjectUrl)
       avatarObjectUrl = null
     }
-
-    avatarSrc.value = source
-
-    if (isObjectUrl) {
-      avatarObjectUrl = source
-    }
-  }
-
-  function handleAvatarRemove () {
-    updateAvatarSource(defaultAvatar)
+    currentUser.value.avatar = defaultAvatar
     emit('avatar-change', null)
     resetAvatarInput()
     closeAvatarModal()
@@ -250,6 +255,10 @@
       avatarInputRef.value.value = ''
     }
   }
+
+  onMounted(() => {
+    loadUser()
+  })
 
   onBeforeUnmount(() => {
     if (avatarObjectUrl) {
@@ -295,6 +304,13 @@
   align-items: center;
   min-width: 0;
   gap: 10px;
+}
+
+.admin-brand-logo {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .admin-title {

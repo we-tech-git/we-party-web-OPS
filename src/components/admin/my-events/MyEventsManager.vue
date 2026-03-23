@@ -135,8 +135,8 @@
     <!-- Page Header -->
     <header class="my-events__header">
       <div class="my-events__header-text">
-        <h2 class="my-events__title">{{ t('admin.myEvents.title') }}</h2>
-        <p class="my-events__sub">{{ t('admin.myEvents.subtitle') }}</p>
+        <h2 class="my-events__title">Editar Eventos</h2>
+        <p class="my-events__sub">Selecione um evento para editar</p>
       </div>
       <RouterLink class="new-event-btn" to="/public/admin/new-event">
         <span class="mdi mdi-plus" />

@@ -130,6 +130,17 @@ export async function getUserRecomendations () {
 }
 
 export function checkUserExists (email: string) {
-  // A ordem provável dos parâmetros do seu callApi é: (URL, MÉTODO, DADOS)
   return callApi('POST', '/users/check-exists', { email })
+}
+
+/** Busca os dados de um usuário pelo ID */
+export async function getUserById (id: string) {
+  return callApi('GET', `/users/${id}`, {}, true)
+}
+
+/** Atualiza a foto de perfil do usuário */
+export async function updateUserProfileImage (file: File) {
+  const formData = new FormData()
+  formData.append('profileImage', file)
+  return callApi('PATCH', '/users/profile-image', formData, true)
 }

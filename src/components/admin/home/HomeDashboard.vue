@@ -16,78 +16,156 @@
 
     <!-- Quick Actions -->
     <div class="quick-actions">
-      <button
-        v-for="action in quickActions"
-        :key="action.key"
-        class="quick-action-btn"
-        :class="`quick-action-btn--${action.color}`"
-        type="button"
-      >
-        <span class="mdi" :class="action.icon" />
-        <span>{{ t(`admin.home.${action.key}`) }}</span>
-      </button>
+      <v-tooltip v-for="action in quickActions" :key="action.key" :disabled="!action.comingSoon" location="bottom">
+        <template #activator="{ props }">
+          <button
+            v-bind="props"
+            class="quick-action-btn"
+            :class="[
+              `quick-action-btn--${action.color}`,
+              { 'quick-action-btn--disabled': action.disabled }
+            ]"
+            :disabled="action.disabled"
+            type="button"
+            @click="handleQuickAction(action)"
+          >
+            <span class="mdi" :class="action.icon" />
+            <span>{{ t(`admin.home.${action.key}`) }}</span>
+          </button>
+        </template>
+        <span>EM BREVE</span>
+      </v-tooltip>
     </div>
 
     <!-- Main Grid -->
     <div class="dashboard-grid">
-      <!-- Next Event Card -->
-      <article class="next-event-card">
+      <!-- My Events Carousel -->
+      <section class="events-carousel-section">
         <div class="card-header">
           <h3 class="card-title">
             <span class="mdi mdi-calendar-star" />
-            {{ t('admin.home.nextEvent') }}
+            {{ t('admin.home.myEventsCarousel') }}
           </h3>
-          <div class="card-actions">
-            <button class="icon-btn" type="button">
-              <span class="mdi mdi-pencil" />
-            </button>
-            <button class="icon-btn" type="button">
-              <span class="mdi mdi-share-variant" />
-            </button>
-          </div>
         </div>
-        <div class="next-event-content">
-          <img alt="Event" class="event-image" src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400">
-          <div class="event-details">
-            <h4 class="event-name">{{ nextEvent.name }}</h4>
-            <p class="event-date">
-              <span class="mdi mdi-calendar" />
-              {{ nextEvent.date }}
-            </p>
-            <p class="event-location">
-              <span class="mdi mdi-map-marker" />
-              {{ nextEvent.location }}
-            </p>
-          </div>
+        <div v-if="activeEvents.length === 0" class="carousel-empty">
+          <span class="mdi mdi-calendar-plus" />
+          <p>Nenhum evento criado ainda</p>
         </div>
-        <div class="countdown-section">
-          <div class="countdown-item">
-            <span class="countdown-value">{{ countdown.days }}</span>
-            <span class="countdown-label">{{ t('admin.home.days') }}</span>
+        <div v-else class="carousel-wrapper">
+          <button
+            class="carousel-arrow carousel-arrow--prev"
+            :disabled="carouselIndex === 0"
+            type="button"
+            @click="carouselPrev"
+          >
+            <span class="mdi mdi-chevron-left" />
+          </button>
+          <div class="carousel-track-container">
+            <div class="carousel-track" :style="{ transform: `translateX(calc(-${carouselIndex} * (520px + 16px)))` }">
+              <div
+                v-for="(event, i) in activeEvents"
+                :key="event.id"
+                class="carousel-card"
+                :class="{ 'carousel-card--active': i === carouselIndex }"
+              >
+                <!-- Badge status no topo do card -->
+                <div class="carousel-card-top">
+                  <span class="carousel-status" :class="`status-${event.status}`">{{ event.status }}</span>
+                </div>
+
+                <!-- Layout horizontal: imagem + conteúdo -->
+                <div class="carousel-card-inner">
+                  <div class="carousel-card-img">
+                    <img
+                      :alt="event.name"
+                      :src="event.cover || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400'"
+                    >
+                  </div>
+
+                  <div class="carousel-card-body">
+                    <div class="carousel-card-header">
+                      <h3 class="carousel-event-name">{{ event.name }}</h3>
+                      <button class="archive-btn" title="Arquivar evento" @click="archiveEvent(event)">
+                        <svg
+                          class="archive-icon"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3m4 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    <div class="carousel-event-details">
+                      <div class="carousel-event-date">
+                        <span class="mdi mdi-calendar-outline" />
+                        {{ event.date }}
+                      </div>
+                      <div class="carousel-event-location">
+                        <span class="mdi mdi-map-marker-outline" />
+                        {{ event.location }}
+                      </div>
+                    </div>
+
+                    <div class="carousel-event-stats">
+                      <div class="event-stat event-stat--likes">
+                        <span class="mdi mdi-heart" />
+                        <span>{{ formatNumber(event.likes) }}</span>
+                      </div>
+                      <div v-if="event.interests && event.interests.length > 0" class="event-stat event-stat--category">
+                        <span class="mdi mdi-tag-outline" />
+                        <span>{{ event.interests.slice(0, 1).join(', ') }}</span>
+                      </div>
+                      <div v-else class="event-stat event-stat--category">
+                        <span class="mdi mdi-tag-outline" />
+                        <span>Sem categoria</span>
+                      </div>
+                    </div>
+
+                    <div class="carousel-countdown">
+                      <div class="carousel-countdown-item">
+                        <div class="cc-value">{{ event.countdown.days }}</div>
+                        <div class="cc-label">{{ t('admin.home.days') }}</div>
+                      </div>
+                      <div class="carousel-countdown-item">
+                        <div class="cc-value">{{ event.countdown.hours }}</div>
+                        <div class="cc-label">{{ t('admin.home.hours') }}</div>
+                      </div>
+                      <div class="carousel-countdown-item">
+                        <div class="cc-value">{{ event.countdown.minutes }}</div>
+                        <div class="cc-label">{{ t('admin.home.minutes') }}</div>
+                      </div>
+                      <div class="carousel-countdown-item">
+                        <div class="cc-value">{{ event.countdown.seconds }}</div>
+                        <div class="cc-label">{{ t('admin.home.seconds') }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="countdown-item">
-            <span class="countdown-value">{{ countdown.hours }}</span>
-            <span class="countdown-label">{{ t('admin.home.hours') }}</span>
-          </div>
-          <div class="countdown-item">
-            <span class="countdown-value">{{ countdown.minutes }}</span>
-            <span class="countdown-label">{{ t('admin.home.minutes') }}</span>
-          </div>
-          <div class="countdown-item">
-            <span class="countdown-value">{{ countdown.seconds }}</span>
-            <span class="countdown-label">{{ t('admin.home.seconds') }}</span>
-          </div>
+          <button
+            class="carousel-arrow carousel-arrow--next"
+            :disabled="carouselIndex >= activeEvents.length - 1"
+            type="button"
+            @click="carouselNext"
+          >
+            <span class="mdi mdi-chevron-right" />
+          </button>
         </div>
-        <div class="event-progress">
-          <div class="progress-info">
-            <span>{{ t('admin.home.ticketsSold') }}</span>
-            <span class="progress-value">{{ nextEvent.ticketsSold }}/{{ nextEvent.totalTickets }}</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill" :style="{ width: ticketProgress + '%' }" />
-          </div>
+        <div class="carousel-dots">
+          <span
+            v-for="(_, i) in activeEvents"
+            :key="i"
+            class="carousel-dot"
+            :class="{ 'carousel-dot--active': i === carouselIndex }"
+            @click="carouselIndex = i"
+          />
         </div>
-      </article>
+      </section>
 
       <!-- Stats Overview -->
       <div class="stats-overview">
@@ -109,12 +187,12 @@
         </div>
       </div>
 
-      <!-- Sales Chart -->
+      <!-- Likes Chart -->
       <div class="chart-card">
         <div class="card-header">
           <h3 class="card-title">
-            <span class="mdi mdi-chart-line" />
-            {{ t('admin.home.salesChart') }}
+            <span class="mdi mdi-heart" />
+            {{ t('admin.home.likesChart') }}
           </h3>
           <div class="period-selector">
             <button
@@ -132,12 +210,12 @@
         <div class="chart-content">
           <div class="chart-stats">
             <div class="chart-stat">
-              <span class="chart-stat-value">R$ {{ formatNumber(totalRevenue) }}</span>
-              <span class="chart-stat-label">{{ t('admin.home.totalRevenue') }}</span>
+              <span class="chart-stat-value">{{ formatNumber(totalLikes) }}</span>
+              <span class="chart-stat-label">{{ t('admin.home.totalLikes') }}</span>
             </div>
             <div class="chart-stat">
-              <span class="chart-stat-value">{{ formatNumber(totalTicketsSold) }}</span>
-              <span class="chart-stat-label">{{ t('admin.home.ticketsSoldLabel') }}</span>
+              <span class="chart-stat-value">{{ totalEventCount }}</span>
+              <span class="chart-stat-label">{{ t('admin.home.totalEventsLabel') }}</span>
             </div>
             <div class="chart-stat positive">
               <span class="chart-stat-value">+{{ growthPercent }}%</span>
@@ -148,14 +226,14 @@
             <svg class="chart-svg" preserveAspectRatio="none" viewBox="0 0 400 150">
               <defs>
                 <linearGradient
-                  id="salesGradient"
+                  id="likesGradient"
                   x1="0%"
                   x2="0%"
                   y1="0%"
                   y2="100%"
                 >
-                  <stop offset="0%" style="stop-color:#b46cff;stop-opacity:0.4" />
-                  <stop offset="100%" style="stop-color:#b46cff;stop-opacity:0.05" />
+                  <stop offset="0%" style="stop-color:#ff4f94;stop-opacity:0.4" />
+                  <stop offset="100%" style="stop-color:#ff4f94;stop-opacity:0.05" />
                 </linearGradient>
               </defs>
               <path class="chart-fill" :d="chartFillPath" />
@@ -173,55 +251,6 @@
             </svg>
           </div>
         </div>
-      </div>
-
-      <!-- Activity Feed -->
-      <div class="activity-feed">
-        <div class="card-header">
-          <h3 class="card-title">
-            <span class="mdi mdi-lightning-bolt" />
-            {{ t('admin.home.recentActivity') }}
-          </h3>
-          <button class="see-all-btn" type="button">{{ t('admin.home.seeAll') }}</button>
-        </div>
-        <div class="activity-list">
-          <div v-for="(activity, index) in recentActivities" :key="index" class="activity-item">
-            <div class="activity-icon" :class="`activity-icon--${activity.type}`">
-              <span class="mdi" :class="activity.icon" />
-            </div>
-            <div class="activity-content">
-              <p class="activity-text">{{ activity.text }}</p>
-              <span class="activity-time">{{ activity.time }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Pending Tasks -->
-      <div class="pending-tasks">
-        <div class="card-header">
-          <h3 class="card-title">
-            <span class="mdi mdi-checkbox-marked-circle-outline" />
-            {{ t('admin.home.pendingTasks') }}
-          </h3>
-          <span class="tasks-count">{{ pendingTasksCount }}/{{ tasks.length }}</span>
-        </div>
-        <div class="tasks-list">
-          <label v-for="task in tasks" :key="task.id" class="task-item" :class="{ completed: task.completed }">
-            <input v-model="task.completed" type="checkbox">
-            <span class="task-checkbox">
-              <span class="mdi mdi-check" />
-            </span>
-            <span class="task-text">{{ task.text }}</span>
-            <span v-if="task.priority" class="task-priority" :class="`priority-${task.priority}`">
-              {{ task.priority }}
-            </span>
-          </label>
-        </div>
-        <button class="add-task-btn" type="button">
-          <span class="mdi mdi-plus" />
-          {{ t('admin.home.addTask') }}
-        </button>
       </div>
 
       <!-- Upcoming Events -->
@@ -259,42 +288,61 @@
         </div>
       </div>
 
-      <!-- Recent Reviews -->
+      <!-- Event Comments -->
       <div class="recent-reviews">
         <div class="card-header">
           <h3 class="card-title">
-            <span class="mdi mdi-star" />
-            {{ t('admin.home.recentReviews') }}
+            <span class="mdi mdi-comment-text-multiple" />
+            {{ t('admin.home.eventComments') }}
           </h3>
-          <div class="average-rating">
-            <span class="rating-value">{{ averageRating }}</span>
-            <div class="rating-stars">
-              <span
-                v-for="star in 5"
-                :key="star"
-                class="mdi"
-                :class="star <= Math.round(averageRating) ? 'mdi-star' : 'mdi-star-outline'"
-              />
+          <button
+            class="icon-btn"
+            :disabled="isLoadingComments"
+            title="Atualizar comentários"
+            type="button"
+            @click="loadComments"
+          >
+            <span class="mdi" :class="isLoadingComments ? 'mdi-loading mdi-spin' : 'mdi-refresh'" />
+          </button>
+        </div>
+
+        <!-- Loading skeleton -->
+        <div v-if="isLoadingComments" class="comments-loading">
+          <div v-for="n in 3" :key="n" class="comment-skeleton">
+            <div class="skeleton-avatar" />
+            <div class="skeleton-body">
+              <div class="skeleton-line skeleton-line--short" />
+              <div class="skeleton-line" />
+              <div class="skeleton-line skeleton-line--medium" />
             </div>
           </div>
         </div>
-        <div class="reviews-list">
-          <div v-for="review in recentReviews" :key="review.id" class="review-item">
-            <img :alt="review.author" class="review-avatar" :src="review.avatar">
+
+        <!-- Empty state -->
+        <div v-else-if="eventComments.length === 0" class="comments-empty">
+          <span class="mdi mdi-comment-off-outline" />
+          <p>Nenhum comentário ainda</p>
+        </div>
+
+        <!-- Comments list -->
+        <div v-else class="reviews-list">
+          <div v-for="comment in eventComments" :key="comment.id" class="review-item">
+            <div class="review-avatar-wrap">
+              <img v-if="comment.avatar" :alt="comment.author" class="review-avatar" :src="comment.avatar">
+              <div v-else class="review-avatar review-avatar--fallback">
+                {{ comment.author.charAt(0).toUpperCase() }}
+              </div>
+            </div>
             <div class="review-content">
               <div class="review-header">
-                <span class="review-author">{{ review.author }}</span>
-                <div class="review-rating">
-                  <span
-                    v-for="star in 5"
-                    :key="star"
-                    class="mdi"
-                    :class="star <= review.rating ? 'mdi-star' : 'mdi-star-outline'"
-                  />
-                </div>
+                <span class="review-author">{{ comment.author }}</span>
+                <span class="review-time">{{ comment.time }}</span>
               </div>
-              <p class="review-text">{{ review.text }}</p>
-              <span class="review-event">{{ review.event }}</span>
+              <p class="review-text">{{ comment.text }}</p>
+              <span class="review-event">
+                <span class="mdi mdi-calendar-check" />
+                {{ comment.eventName }}
+              </span>
             </div>
           </div>
         </div>
@@ -329,54 +377,59 @@
         </div>
       </div>
 
-      <!-- Financial Summary -->
-      <div class="financial-summary">
-        <div class="card-header">
-          <h3 class="card-title">
-            <span class="mdi mdi-wallet" />
-            {{ t('admin.home.financialSummary') }}
-          </h3>
-          <span class="period-badge">{{ t('admin.home.thisMonth') }}</span>
-        </div>
-        <div class="financial-grid">
-          <div class="financial-item revenue">
-            <span class="financial-label">{{ t('admin.home.monthlyRevenue') }}</span>
-            <span class="financial-value">R$ {{ formatNumber(financials.revenue) }}</span>
-          </div>
-          <div class="financial-item expenses">
-            <span class="financial-label">{{ t('admin.home.expenses') }}</span>
-            <span class="financial-value">R$ {{ formatNumber(financials.expenses) }}</span>
-          </div>
-          <div class="financial-item profit">
-            <span class="financial-label">{{ t('admin.home.netProfit') }}</span>
-            <span class="financial-value">R$ {{ formatNumber(financials.profit) }}</span>
-          </div>
-        </div>
-        <div class="profit-bar">
-          <div class="profit-segment revenue" :style="{ width: revenuePercent + '%' }">
-            <span>{{ t('admin.home.revenue') }}</span>
-          </div>
-          <div class="profit-segment expenses" :style="{ width: expensesPercent + '%' }">
-            <span>{{ t('admin.home.expenses') }}</span>
-          </div>
-        </div>
-      </div>
     </div>
+
+    <!-- Archived Events Modal -->
+    <v-dialog v-model="isArchivedModalOpen" max-width="600">
+      <v-card>
+        <v-card-title class="d-flex justify-space-between align-center px-6 py-4">
+          <span class="text-h6 font-weight-bold">Eventos Arquivados</span>
+          <v-btn icon="mdi-close" size="small" variant="text" @click="isArchivedModalOpen = false" />
+        </v-card-title>
+        <v-divider />
+        <v-card-text class="px-6 py-4">
+          <div v-if="archivedEventsList.length === 0" class="text-center py-8 text-grey">
+            <span class="mdi mdi-archive-off-outline text-h3 d-block mb-3" />
+            Nenhum evento arquivado
+          </div>
+          <v-list v-else lines="two">
+            <v-list-item
+              v-for="event in archivedEventsList"
+              :key="event.id"
+              :prepend-avatar="event.cover || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=100'"
+            >
+              <v-list-item-title class="font-weight-bold">{{ event.name }}</v-list-item-title>
+              <v-list-item-subtitle>{{ event.date }} - {{ event.location }}</v-list-item-subtitle>
+
+              <template #append>
+                <v-btn color="primary" size="small" variant="tonal" @click="unarchiveEvent(event)">
+                  Desarquivar
+                </v-btn>
+              </template>
+            </v-list-item>
+          </v-list>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </section>
 </template>
 
 <script setup lang="ts">
   import { computed, onMounted, onUnmounted, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { getMyEvents, getUpcomingEvents } from '@/services/events'
+  import { useRouter } from 'vue-router'
+  import { useCurrentUser } from '@/composables/useCurrentUser'
+  import { getEventComments, getEventLikes, getMyEvents } from '@/services/events'
 
   const { t, locale } = useI18n()
+  const router = useRouter()
+  const { loadUser, getFirstName } = useCurrentUser()
 
   // Loading state
   const isLoadingEvents = ref(false)
 
   // Producer info
-  const producerName = ref('João')
+  const producerName = computed(() => getFirstName())
 
   // Current date
   const currentDate = computed(() => {
@@ -391,75 +444,123 @@
 
   // Quick Actions
   const quickActions = [
-    { key: 'createEvent', icon: 'mdi-plus-circle', color: 'primary' },
-    { key: 'marketing', icon: 'mdi-bullhorn', color: 'orange' },
-    { key: 'finances', icon: 'mdi-cash-multiple', color: 'green' },
-    { key: 'reports', icon: 'mdi-file-chart', color: 'purple' },
+    { key: 'createEvent', icon: 'mdi-plus-circle', color: 'primary', disabled: false, comingSoon: false, route: '/public/admin/new-event' },
+    { key: 'archivedEvents', icon: 'mdi-archive', color: 'orange', disabled: false, comingSoon: false, action: showArchivedEvents },
+    { key: 'marketing', icon: 'mdi-bullhorn', color: 'orange', disabled: true, comingSoon: true },
+    { key: 'reports', icon: 'mdi-file-chart', color: 'purple', disabled: true, comingSoon: true },
   ]
 
-  // Next Event
-  const nextEvent = ref({
-    name: 'Sunset Beach Party',
-    date: '25 de Janeiro, 2025 • 18:00',
-    location: 'Praia de Copacabana, Rio de Janeiro',
-    ticketsSold: 347,
-    totalTickets: 500,
-    targetDate: new Date('2025-01-25T18:00:00'),
-  })
-
-  const ticketProgress = computed(() => {
-    return Math.round((nextEvent.value.ticketsSold / nextEvent.value.totalTickets) * 100)
-  })
-
-  // Countdown
-  const countdown = ref({ days: 0, hours: 0, minutes: 0, seconds: 0 })
-  let countdownInterval: ReturnType<typeof setInterval> | null = null
-
-  function updateCountdown () {
-    const now = Date.now()
-    const target = nextEvent.value.targetDate.getTime()
-    const diff = target - now
-
-    if (diff > 0) {
-      countdown.value = {
-        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-        minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
-        seconds: Math.floor((diff % (1000 * 60)) / 1000),
-      }
+  function handleQuickAction (action: any) {
+    if (action.disabled) return
+    if (action.route) {
+      router.push(action.route)
+    } else if (action.action) {
+      action.action()
     }
   }
 
-  // Overview Stats
-  const overviewStats = ref([
+  // Dashboard modals state
+  const isArchivedModalOpen = ref(false)
+
+  function showArchivedEvents () {
+    isArchivedModalOpen.value = true
+  }
+
+  // My Events para o carrossel
+  interface CarouselEvent {
+    id: string
+    name: string
+    date: string
+    location: string
+    cover: string
+    status: string
+    targetDate: Date
+    isArchived?: boolean
+    likes: number
+    interests: string[]
+    countdown: { days: number, hours: number, minutes: number, seconds: number }
+  }
+  const myEvents = ref<CarouselEvent[]>([])
+  const activeEvents = computed(() => myEvents.value.filter(ev => !ev.isArchived))
+  const archivedEventsList = computed(() => myEvents.value.filter(ev => ev.isArchived))
+
+  function archiveEvent (event: CarouselEvent) {
+    event.isArchived = true
+    if (carouselIndex.value >= activeEvents.value.length) {
+      carouselIndex.value = Math.max(0, activeEvents.value.length - 1)
+    }
+  // Opcional: call API para atualizar o status no banco persistindo "arquivado"
+  }
+
+  function unarchiveEvent (event: CarouselEvent) {
+    event.isArchived = false
+  }
+
+  const carouselIndex = ref(0)
+  let carouselInterval: ReturnType<typeof setInterval> | null = null
+
+  function computeCountdown (targetDate: Date) {
+    const diff = targetDate.getTime() - Date.now()
+    if (diff <= 0) {
+      return { days: 0, hours: 0, minutes: 0, seconds: 0 }
+    }
+    return {
+      days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+      minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+      seconds: Math.floor((diff % (1000 * 60)) / 1000),
+    }
+  }
+
+  function tickCarousels () {
+    for (const ev of myEvents.value) {
+      ev.countdown = computeCountdown(ev.targetDate)
+    }
+  }
+
+  function carouselNext () {
+    if (carouselIndex.value < activeEvents.value.length - 1) {
+      carouselIndex.value++
+    }
+  }
+
+  function carouselPrev () {
+    if (carouselIndex.value > 0) {
+      carouselIndex.value--
+    }
+  }
+
+  // Totais reais derivados dos eventos carregados
+  const totalLikes = computed(() => myEvents.value.reduce((sum, ev) => sum + ev.likes, 0))
+  const totalEventCount = computed(() => myEvents.value.length)
+
+  // Overview Stats — valores de curtidas derivados dos dados reais
+  const overviewStats = computed(() => [
     { key: 'views', icon: 'mdi-eye', value: 45_892, trend: 12.5 },
-    { key: 'ticketsSoldLabel', icon: 'mdi-ticket', value: 1247, trend: 8.3 },
-    { key: 'followers', icon: 'mdi-account-group', value: 12_458, trend: 15.2 },
-    { key: 'revenueLabel', icon: 'mdi-cash', value: 89_450, trend: -2.1 },
+    { key: 'likesLabel', icon: 'mdi-heart', value: totalLikes.value, trend: 8.3 },
   ])
 
   // Chart data
   const selectedPeriod = ref('7D')
   const periods = ['7D', '30D', '90D', '1A']
   const growthPercent = ref(23.5)
-  const totalRevenue = ref(89_450)
-  const totalTicketsSold = ref(1247)
 
   const chartData = ref([
-    { date: 'Seg', value: 12_500 },
-    { date: 'Ter', value: 18_200 },
-    { date: 'Qua', value: 15_800 },
-    { date: 'Qui', value: 22_100 },
-    { date: 'Sex', value: 28_900 },
-    { date: 'Sáb', value: 35_200 },
-    { date: 'Dom', value: 24_800 },
+    { date: 'Seg', value: 1200 },
+    { date: 'Ter', value: 2100 },
+    { date: 'Qua', value: 1850 },
+    { date: 'Qui', value: 3200 },
+    { date: 'Sex', value: 4100 },
+    { date: 'Sáb', value: 5300 },
+    { date: 'Dom', value: 3800 },
   ])
 
   const chartPoints = computed(() => {
     const width = 400
     const height = 150
     const padding = 20
-    const maxValue = Math.max(...chartData.value.map(d => d.value))
+    const rawMax = Math.max(...chartData.value.map(d => d.value))
+    const maxValue = rawMax === 0 ? 1 : rawMax
 
     return chartData.value.map((d, i) => ({
       x: padding + (i / (chartData.value.length - 1)) * (width - 2 * padding),
@@ -497,92 +598,184 @@
     return `${chartLinePath.value} L ${lastPoint.x} ${height} L ${firstPoint.x} ${height} Z`
   })
 
-  // Recent Activities
-  const recentActivities = ref([
-    { type: 'sale', icon: 'mdi-ticket-confirmation', text: 'Maria Silva comprou 2 ingressos VIP', time: 'Há 5 min' },
-    { type: 'follow', icon: 'mdi-account-plus', text: 'Pedro Santos começou a seguir você', time: 'Há 12 min' },
-    { type: 'comment', icon: 'mdi-comment', text: 'Novo comentário em "Sunset Beach Party"', time: 'Há 25 min' },
-    { type: 'sale', icon: 'mdi-ticket-confirmation', text: 'João Oliveira comprou 1 ingresso Pista', time: 'Há 1 hora' },
-    { type: 'review', icon: 'mdi-star', text: 'Nova avaliação 5 estrelas recebida', time: 'Há 2 horas' },
-  ])
-
-  // Tasks
-  const tasks = ref([
-    { id: 1, text: 'Confirmar DJ para o evento', completed: true, priority: 'alta' },
-    { id: 2, text: 'Enviar e-mail marketing', completed: false, priority: 'alta' },
-    { id: 3, text: 'Revisar contrato do local', completed: false, priority: 'média' },
-    { id: 4, text: 'Postar no Instagram', completed: true, priority: null },
-    { id: 5, text: 'Verificar estoque de bebidas', completed: false, priority: 'baixa' },
-  ])
-
-  const pendingTasksCount = computed(() => tasks.value.filter(t => t.completed).length)
-
-  // Upcoming Events
+  // Upcoming Events (sidebar)
   const upcomingEvents = ref([
     { id: 1, name: 'Sunset Beach Party', day: '25', month: 'Jan', venue: 'Copacabana', ticketsSold: 347, totalTickets: 500, revenue: 52_450, status: 'ativo' },
     { id: 2, name: 'Neon Night', day: '02', month: 'Fev', venue: 'Club XYZ', ticketsSold: 120, totalTickets: 300, revenue: 18_000, status: 'rascunho' },
     { id: 3, name: 'Carnival Pre-Party', day: '15', month: 'Fev', venue: 'Arena Central', ticketsSold: 0, totalTickets: 1000, revenue: 0, status: 'agendado' },
   ])
 
+  // Normaliza o objeto de evento independente do formato retornado pela API
+  function normalizeEvent (ev: any) {
+    const startDateRaw = ev.startDate ?? ev.start_date ?? ev.startAt ?? ev.start_at ?? ev.date ?? ''
+    const startDate = startDateRaw ? new Date(startDateRaw) : new Date(Date.now() + 86_400_000)
+    const title = ev.title ?? ev.name ?? ev.eventName ?? 'Evento'
+    const location = ev.location ?? ev.venue ?? ev.address ?? ev.place ?? 'Local a definir'
+    const photos: string[] = ev.photos ?? ev.images ?? (ev.photo ? [ev.photo] : [])
+    const cover = photos[0] ?? ev.cover ?? ev.image ?? ev.thumbnail ?? ''
+    const status = ev.status ?? 'ativo'
+    const likes = ev.likes ?? ev.likesCount ?? ev.likes_count ?? 0
+    const interests = ev.interests ?? ev.categories ?? ev.tags ?? []
+    return {
+      raw: ev,
+      id: String(ev.id ?? ev._id ?? Math.random()),
+      name: title,
+      date: startDate.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }),
+      location,
+      cover,
+      status,
+      targetDate: startDate,
+      likes,
+      interests: Array.isArray(interests) ? interests : [],
+      countdown: computeCountdown(startDate),
+    }
+  }
+
+  // Extrai lista de eventos independente do formato da resposta API
+  function extractList (res: any): any[] {
+    if (Array.isArray(res)) return res
+    if (Array.isArray(res?.data?.data)) return res.data.data
+    if (Array.isArray(res?.data)) return res.data
+    if (Array.isArray(res?.content)) return res.content
+    if (Array.isArray(res?.events)) return res.events
+    if (Array.isArray(res?.items)) return res.items
+    return []
+  }
+
   // Função para carregar eventos da API
   async function loadEvents () {
     isLoadingEvents.value = true
     try {
-      // Tenta buscar eventos upcoming primeiro
-      const response = await getUpcomingEvents().catch(() => getMyEvents())
-      const data = response?.data || response || []
+      const res = await getMyEvents() as any
+      console.log('[HomeDashboard] raw response getMyEvents:', JSON.stringify(res))
+      const list = extractList(res)
+      console.log('[HomeDashboard] eventos encontrados:', list.length, list)
 
-      if (Array.isArray(data) && data.length > 0) {
-        // Atualiza upcomingEvents com dados da API
-        upcomingEvents.value = data.slice(0, 5).map((event: any) => {
-          const startDate = new Date(event.startDate)
-          return {
-            id: event.id || event._id,
-            name: event.title || event.name || 'Evento',
-            day: String(startDate.getDate()).padStart(2, '0'),
-            month: startDate.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''),
-            venue: event.location || 'Local a definir',
-            ticketsSold: event.ticketsSold || 0,
-            totalTickets: event.totalTickets || 100,
-            revenue: event.revenue || 0,
-            status: event.status || 'ativo',
+      // Normaliza eventos e busca likes para cada um
+      const eventsWithLikes = await Promise.allSettled(
+        list.map(async (ev: any) => {
+          const normalizedEvent = normalizeEvent(ev)
+          try {
+            const likesRes = await getEventLikes(normalizedEvent.id) as any
+            normalizedEvent.likes = likesRes?.count ?? likesRes?.data?.count ?? normalizedEvent.likes
+          } catch (error) {
+            console.warn(`[HomeDashboard] Erro ao buscar likes do evento ${normalizedEvent.id}:`, error)
           }
-        })
+          return normalizedEvent
+        }),
+      )
 
-        // Atualiza o próximo evento (nextEvent) com o primeiro da lista
-        const firstEvent = data[0] as any
-        if (firstEvent) {
-          const startDate = new Date(firstEvent.startDate)
-          nextEvent.value = {
-            name: firstEvent.title || firstEvent.name || 'Próximo Evento',
-            date: startDate.toLocaleDateString('pt-BR', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
-            location: firstEvent.location || 'Local a definir',
-            ticketsSold: firstEvent.ticketsSold || 0,
-            totalTickets: firstEvent.totalTickets || 100,
-            targetDate: startDate,
-          }
-        }
+      myEvents.value = eventsWithLikes
+        .filter(result => result.status === 'fulfilled')
+        .map(result => result.value)
+
+      // Atualiza chart data com curtidas reais por evento
+      if (myEvents.value.length > 0) {
+        chartData.value = myEvents.value.slice(0, 10).map(ev => ({
+          date: ev.name.length > 10 ? ev.name.slice(0, 10) + '…' : ev.name,
+          value: ev.likes,
+        }))
       }
-    } catch (error) {
-      console.warn('[HomeDashboard] Erro ao carregar eventos, usando dados mock:', error)
+
+      // popula upcoming events para a timeline lateral
+      upcomingEvents.value = list.slice(0, 5).map((event: any) => {
+        const startDateRaw = event.startDate ?? event.start_date ?? event.startAt ?? event.start_at ?? ''
+        const startDate = startDateRaw ? new Date(startDateRaw) : new Date()
+        return {
+          id: event.id ?? event._id,
+          name: event.title ?? event.name ?? 'Evento',
+          day: String(startDate.getDate()).padStart(2, '0'),
+          month: startDate.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''),
+          venue: event.location ?? event.venue ?? 'Local a definir',
+          ticketsSold: event.ticketsSold ?? event.tickets_sold ?? 0,
+          totalTickets: event.totalTickets ?? event.total_tickets ?? 100,
+          revenue: event.revenue ?? 0,
+          status: event.status ?? 'ativo',
+        }
+      })
+    } catch (error: any) {
+      const status = error?.response?.status
+      console.error('[HomeDashboard] Erro ao carregar eventos:', status, error?.response?.data || error)
     } finally {
       isLoadingEvents.value = false
     }
   }
 
-  // Reviews
-  const averageRating = ref(4.7)
-  const recentReviews = ref([
-    { id: 1, author: 'Ana Carolina', avatar: 'https://i.pravatar.cc/100?img=1', rating: 5, text: 'Melhor festa que já fui! Organização impecável.', event: 'Summer Vibes' },
-    { id: 2, author: 'Lucas Mendes', avatar: 'https://i.pravatar.cc/100?img=2', rating: 4, text: 'Ótima música e ambiente. Só faltou mais bar.', event: 'Summer Vibes' },
-    { id: 3, author: 'Juliana Costa', avatar: 'https://i.pravatar.cc/100?img=3', rating: 5, text: 'Lineup incrível, voltarei com certeza!', event: 'Electro Night' },
-  ])
+  // Event Comments
+  interface CommentItem {
+    id: string
+    author: string
+    avatar: string
+    text: string
+    eventName: string
+    time: string
+    rawDate: string
+  }
+  const eventComments = ref<CommentItem[]>([])
+  const isLoadingComments = ref(false)
+
+  function extractCommentList (resp: any): any[] {
+    if (Array.isArray(resp)) return resp
+    if (Array.isArray(resp?.data?.data)) return resp.data.data
+    if (Array.isArray(resp?.data)) return resp.data
+    if (Array.isArray(resp?.content)) return resp.content
+    if (Array.isArray(resp?.comments)) return resp.comments
+    if (Array.isArray(resp?.items)) return resp.items
+    return []
+  }
+
+  async function loadComments () {
+    isLoadingComments.value = true
+    try {
+      // Reutiliza eventos já carregados para evitar chamada duplicada
+      const events = myEvents.value.length > 0 ? myEvents.value : []
+      if (events.length === 0) {
+        isLoadingComments.value = false
+        return
+      }
+
+      const allComments: CommentItem[] = []
+
+      await Promise.allSettled(
+        events.slice(0, 5).map(async event => {
+          try {
+            const resp = await getEventComments(event.id) as any
+            const list = extractCommentList(resp)
+            console.log(`[Comments] evento "${event.name}" (${event.id}):`, list.length, 'comentários')
+            for (const c of list.slice(0, 3)) {
+              const text = c.content ?? c.text ?? c.message ?? ''
+              if (!text.trim()) continue
+              const rawDate = c.createdAt ?? c.created_at ?? c.updatedAt ?? ''
+              allComments.push({
+                id: String(c.id ?? c._id ?? Math.random()),
+                author: c.userName ?? c.user?.name ?? c.user?.firstName ?? c.authorName ?? 'Usuário',
+                avatar: c.userAvatar ?? c.user?.avatar ?? c.user?.profileImage ?? c.user?.photo ?? '',
+                text,
+                eventName: event.name,
+                time: rawDate ? new Date(rawDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—',
+                rawDate,
+              })
+            }
+          } catch (error: any) {
+            console.warn(`[Comments] erro no evento ${event.id}:`, error?.response?.status ?? error)
+          }
+        }),
+      )
+
+      // Ordena do mais recente ao mais antigo
+      allComments.sort((a, b) => {
+        if (!a.rawDate) return 1
+        if (!b.rawDate) return -1
+        return new Date(b.rawDate).getTime() - new Date(a.rawDate).getTime()
+      })
+
+      eventComments.value = allComments.slice(0, 6)
+    } catch (error: any) {
+      console.error('[HomeDashboard] Erro ao carregar comentários:', error?.response?.data ?? error)
+    } finally {
+      isLoadingComments.value = false
+    }
+  }
 
   // Suggestions
   const suggestions = ref([
@@ -591,35 +784,20 @@
     { id: 3, type: 'social', icon: 'mdi-instagram', titleKey: 'suggestionSocial', descKey: 'suggestionSocialDesc' },
   ])
 
-  // Financials
-  const financials = ref({
-    revenue: 89_450,
-    expenses: 32_180,
-    profit: 57_270,
-  })
-
-  const revenuePercent = computed(() => {
-    const total = financials.value.revenue
-    return Math.round((financials.value.profit / total) * 100)
-  })
-
-  const expensesPercent = computed(() => {
-    return 100 - revenuePercent.value
-  })
-
   function formatNumber (num: number): string {
     return num.toLocaleString('pt-BR')
   }
 
-  onMounted(() => {
-    updateCountdown()
-    countdownInterval = setInterval(updateCountdown, 1000)
-    loadEvents()
+  onMounted(async () => {
+    carouselInterval = setInterval(tickCarousels, 1000)
+    loadUser()
+    await loadEvents()
+    loadComments()
   })
 
   onUnmounted(() => {
-    if (countdownInterval) {
-      clearInterval(countdownInterval)
+    if (carouselInterval) {
+      clearInterval(carouselInterval)
     }
   })
 </script>
@@ -733,11 +911,336 @@
   box-shadow: 0 4px 16px rgba(107, 92, 231, 0.3);
 }
 
+.quick-action-btn--disabled {
+  background: linear-gradient(135deg, #e0e0e0 0%, #c8c8c8 100%) !important;
+  color: #9e9e9e !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+}
+
+.quick-action-btn--disabled:hover {
+  transform: none !important;
+}
+
 /* Dashboard Grid */
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
+}
+
+/* Events Carousel */
+.events-carousel-section {
+  grid-column: span 3;
+  background: linear-gradient(135deg, #f8f8ff 0%, #fff 100%);
+  border-radius: 20px;
+  border: 1px solid rgba(171, 151, 255, 0.15);
+  padding: 20px;
+}
+
+.carousel-empty {
+  text-align: center;
+  padding: 40px 0;
+  color: #a1a1b5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.carousel-empty .mdi {
+  font-size: 40px;
+  color: #ddd;
+}
+
+.carousel-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.carousel-track-container {
+  flex: 1;
+  overflow: hidden;
+  padding: 4px 0;
+}
+
+.carousel-track {
+  display: flex;
+  gap: 16px;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
+}
+
+.carousel-card {
+  flex: 0 0 520px;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+}
+
+.carousel-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.carousel-card--active {
+  border-color: rgba(180, 108, 255, 0.4);
+  box-shadow: 0 8px 24px rgba(180, 108, 255, 0.18);
+}
+
+/* Badge de status no topo */
+.carousel-card-top {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 12px 0;
+}
+
+.carousel-status {
+  background: #7c3aed;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.status-PUBLISHED, .status-published {
+  background: #7c3aed;
+}
+
+.status-DRAFT, .status-draft, .status-rascunho {
+  background: #9ca3af;
+}
+
+.status-ACTIVE, .status-active, .status-ativo {
+  background: #10b981;
+}
+
+/* Layout horizontal */
+.carousel-card-inner {
+  display: flex;
+  gap: 0;
+  padding: 12px;
+  gap: 14px;
+}
+
+.carousel-card-img {
+  flex: 0 0 150px;
+  height: 160px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.carousel-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.carousel-card:hover .carousel-card-img img {
+  transform: scale(1.04);
+}
+
+.carousel-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.carousel-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.carousel-event-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+  line-height: 1.3;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  flex: 1;
+}
+
+.archive-btn {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.archive-btn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.archive-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.carousel-event-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.carousel-event-date,
+.carousel-event-location {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.carousel-event-date .mdi,
+.carousel-event-location .mdi {
+  color: #b46cff;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.carousel-event-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.event-stat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.event-stat--likes {
+  background: #fdf2f8;
+  color: #ec4899;
+}
+
+.event-stat--likes .mdi {
+  color: #ec4899;
+  font-size: 13px;
+}
+
+.event-stat--category {
+  background: #f3f4f6;
+  color: #7c3aed;
+}
+
+.event-stat--category .mdi {
+  color: #b46cff;
+  font-size: 13px;
+}
+
+.carousel-countdown {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-top: auto;
+}
+
+.carousel-countdown-item {
+  text-align: center;
+  padding: 6px 4px;
+  background: #7c3aed;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.25);
+  border-bottom: 3px solid #5b21b6;
+}
+
+.cc-value {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.cc-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+}
+
+.carousel-arrow {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(171, 151, 255, 0.3);
+  background: white;
+  color: #b46cff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.carousel-arrow:hover:not(:disabled) {
+  background: #b46cff;
+  color: white;
+  border-color: #b46cff;
+}
+
+.carousel-arrow:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e0e0f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.carousel-dot--active {
+  background: #b46cff;
+  width: 20px;
+  border-radius: 4px;
 }
 
 /* Card Styles */
@@ -783,120 +1286,13 @@
   color: #b46cff;
 }
 
-/* Next Event Card */
-.next-event-card {
-  grid-column: span 1;
-  background: linear-gradient(135deg, #f8f8ff 0%, #fff 100%);
-  border-radius: 20px;
-  border: 1px solid rgba(171, 151, 255, 0.15);
-  padding: 20px;
-}
-
-.next-event-content {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.event-image {
-  width: 100px;
-  height: 100px;
-  border-radius: 12px;
-  object-fit: cover;
-}
-
-.event-details {
-  flex: 1;
-}
-
-.event-name {
-  font-size: 18px;
-  font-weight: 700;
-  color: #2d2d3a;
-  margin: 0 0 8px;
-}
-
-.event-date,
-.event-location {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: #8b8b99;
-  margin: 4px 0;
-}
-
-.event-date .mdi,
-.event-location .mdi {
-  color: #b46cff;
-}
-
-/* Countdown */
-.countdown-section {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.countdown-item {
-  flex: 1;
-  text-align: center;
-  padding: 12px 8px;
-  background: linear-gradient(135deg, #b46cff 0%, #8b5cf6 100%);
-  border-radius: 12px;
-}
-
-.countdown-value {
-  display: block;
-  font-size: 24px;
-  font-weight: 700;
-  color: white;
-}
-
-.countdown-label {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.8);
-  text-transform: uppercase;
-}
-
-/* Progress */
-.event-progress {
-  margin-top: 12px;
-}
-
-.progress-info {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  color: #5c5c6d;
-  margin-bottom: 8px;
-}
-
-.progress-value {
-  font-weight: 600;
-  color: #2d2d3a;
-}
-
-.progress-bar {
-  height: 8px;
-  background: #e8e8f0;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #b46cff 0%, #ff4f94 100%);
-  border-radius: 4px;
-  transition: width 0.5s ease;
-}
+/* Next Event — CSS legado mantido por compat */
 
 /* Stats Overview */
 .stats-overview {
-  grid-column: span 2;
+  grid-column: span 1;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
 
@@ -1029,227 +1425,20 @@
 }
 
 .chart-fill {
-  fill: url(#salesGradient);
+  fill: url(#likesGradient);
 }
 
 .chart-line {
   fill: none;
-  stroke: #b46cff;
+  stroke: #ff4f94;
   stroke-width: 3;
   stroke-linecap: round;
 }
 
 .chart-point {
-  fill: #b46cff;
+  fill: #ff4f94;
   stroke: white;
   stroke-width: 2;
-}
-
-/* Activity Feed */
-.activity-feed {
-  grid-column: span 1;
-  background: linear-gradient(135deg, #f8f8ff 0%, #fff 100%);
-  border-radius: 20px;
-  border: 1px solid rgba(171, 151, 255, 0.15);
-  padding: 20px;
-}
-
-.see-all-btn {
-  background: transparent;
-  border: none;
-  color: #b46cff;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.activity-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-height: 280px;
-  overflow-y: auto;
-}
-
-.activity-item {
-  display: flex;
-  gap: 12px;
-  padding: 12px;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid rgba(171, 151, 255, 0.1);
-}
-
-.activity-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-}
-
-.activity-icon--sale {
-  background: linear-gradient(135deg, #e8f8f3 0%, #d1f0e6 100%);
-  color: #3eb489;
-}
-
-.activity-icon--follow {
-  background: linear-gradient(135deg, #e8f4fd 0%, #d1e9fa 100%);
-  color: #3b82f6;
-}
-
-.activity-icon--comment {
-  background: linear-gradient(135deg, #f3e8fd 0%, #e6d1fa 100%);
-  color: #8b5cf6;
-}
-
-.activity-icon--review {
-  background: linear-gradient(135deg, #fef3e2 0%, #fde6c4 100%);
-  color: #f59e0b;
-}
-
-.activity-content {
-  flex: 1;
-}
-
-.activity-text {
-  font-size: 13px;
-  color: #2d2d3a;
-  margin: 0 0 4px;
-}
-
-.activity-time {
-  font-size: 11px;
-  color: #a1a1b5;
-}
-
-/* Pending Tasks */
-.pending-tasks {
-  grid-column: span 1;
-  background: linear-gradient(135deg, #f8f8ff 0%, #fff 100%);
-  border-radius: 20px;
-  border: 1px solid rgba(171, 151, 255, 0.15);
-  padding: 20px;
-}
-
-.tasks-count {
-  font-size: 13px;
-  color: #8b8b99;
-  font-weight: 600;
-}
-
-.tasks-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.task-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: white;
-  border-radius: 10px;
-  border: 1px solid rgba(171, 151, 255, 0.1);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.task-item:hover {
-  border-color: rgba(171, 151, 255, 0.3);
-}
-
-.task-item.completed {
-  opacity: 0.6;
-}
-
-.task-item.completed .task-text {
-  text-decoration: line-through;
-}
-
-.task-item input[type="checkbox"] {
-  display: none;
-}
-
-.task-checkbox {
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
-  border: 2px solid #ddd;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 12px;
-  transition: all 0.2s ease;
-}
-
-.task-item.completed .task-checkbox {
-  background: #3eb489;
-  border-color: #3eb489;
-}
-
-.task-checkbox .mdi {
-  opacity: 0;
-}
-
-.task-item.completed .task-checkbox .mdi {
-  opacity: 1;
-}
-
-.task-text {
-  flex: 1;
-  font-size: 13px;
-  color: #2d2d3a;
-}
-
-.task-priority {
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.priority-alta {
-  background: #ffe8ec;
-  color: #ff4f94;
-}
-
-.priority-média {
-  background: #fef3e2;
-  color: #f59e0b;
-}
-
-.priority-baixa {
-  background: #e8f8f3;
-  color: #3eb489;
-}
-
-.add-task-btn {
-  width: 100%;
-  padding: 10px;
-  border: 2px dashed rgba(171, 151, 255, 0.3);
-  border-radius: 10px;
-  background: transparent;
-  color: #b46cff;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: all 0.2s ease;
-}
-
-.add-task-btn:hover {
-  background: rgba(180, 108, 255, 0.05);
-  border-color: #b46cff;
 }
 
 /* Upcoming Events */
@@ -1360,32 +1549,41 @@
   padding: 20px;
 }
 
-.average-rating {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.rating-value {
-  font-size: 18px;
-  font-weight: 700;
-  color: #f59e0b;
-}
-
-.rating-stars {
-  display: flex;
-  gap: 2px;
-  color: #f59e0b;
-  font-size: 14px;
-}
-
 .reviews-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.review-item {
+/* Comments empty state */
+.comments-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 16px;
+  color: #a1a1b5;
+}
+
+.comments-empty .mdi {
+  font-size: 36px;
+  opacity: 0.5;
+}
+
+.comments-empty p {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* Comments loading skeleton */
+.comments-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.comment-skeleton {
   display: flex;
   gap: 12px;
   padding: 12px;
@@ -1394,11 +1592,85 @@
   border: 1px solid rgba(171, 151, 255, 0.1);
 }
 
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #f0f0f5 25%, #e8e8f0 50%, #f0f0f5 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  flex-shrink: 0;
+}
+
+.skeleton-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+}
+
+.skeleton-line {
+  height: 10px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f0f0f5 25%, #e8e8f0 50%, #f0f0f5 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  width: 100%;
+}
+
+.skeleton-line--short {
+  width: 40%;
+}
+
+.skeleton-line--medium {
+  width: 65%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Review item */
+.review-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid rgba(171, 151, 255, 0.1);
+  transition: border-color 0.2s ease;
+}
+
+.review-item:hover {
+  border-color: rgba(171, 151, 255, 0.3);
+}
+
+.review-avatar-wrap {
+  flex-shrink: 0;
+}
+
 .review-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
+}
+
+.review-avatar--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #b46cff, #8b5cf6);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
 }
 
 .review-content {
@@ -1418,23 +1690,29 @@
   color: #2d2d3a;
 }
 
-.review-rating {
-  display: flex;
-  gap: 1px;
-  color: #f59e0b;
-  font-size: 12px;
+.review-time {
+  font-size: 11px;
+  color: #a1a1b5;
 }
 
 .review-text {
   font-size: 12px;
   color: #5c5c6d;
-  margin: 0 0 4px;
-  line-height: 1.4;
+  margin: 0 0 6px;
+  line-height: 1.5;
 }
 
 .review-event {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 11px;
-  color: #a1a1b5;
+  color: #b46cff;
+  font-weight: 500;
+}
+
+.review-event .mdi {
+  font-size: 12px;
 }
 
 /* Smart Suggestions */
@@ -1527,87 +1805,6 @@
 
 .suggestion-action:hover {
   transform: scale(1.1);
-}
-
-/* Financial Summary */
-.financial-summary {
-  grid-column: span 1;
-  background: linear-gradient(135deg, #f8f8ff 0%, #fff 100%);
-  border-radius: 20px;
-  border: 1px solid rgba(171, 151, 255, 0.15);
-  padding: 20px;
-}
-
-.period-badge {
-  padding: 4px 10px;
-  background: rgba(180, 108, 255, 0.1);
-  color: #b46cff;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.financial-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.financial-item {
-  text-align: center;
-  padding: 16px 12px;
-  border-radius: 12px;
-}
-
-.financial-item.revenue {
-  background: linear-gradient(135deg, #e8f8f3 0%, #d1f0e6 100%);
-}
-
-.financial-item.expenses {
-  background: linear-gradient(135deg, #ffe8ec 0%, #ffd1da 100%);
-}
-
-.financial-item.profit {
-  background: linear-gradient(135deg, #e8f4fd 0%, #d1e9fa 100%);
-}
-
-.financial-label {
-  display: block;
-  font-size: 11px;
-  color: #8b8b99;
-  margin-bottom: 4px;
-}
-
-.financial-value {
-  font-size: 16px;
-  font-weight: 700;
-  color: #2d2d3a;
-}
-
-.profit-bar {
-  display: flex;
-  height: 32px;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.profit-segment {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 600;
-  color: white;
-  transition: width 0.5s ease;
-}
-
-.profit-segment.revenue {
-  background: linear-gradient(90deg, #3eb489 0%, #5dc7a9 100%);
-}
-
-.profit-segment.expenses {
-  background: linear-gradient(90deg, #ff6b9d 0%, #ff4f94 100%);
 }
 
 /* Responsive */

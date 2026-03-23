@@ -67,7 +67,7 @@
       const idx = comments.value.findIndex(c => c.id === id)
       if (idx !== -1) comments.value[idx] = { ...comments.value[idx]!, _deleted: true }
     } catch {
-      // silently ignore
+    // silently ignore
     } finally {
       deletingId.value = null
     }
@@ -103,7 +103,7 @@
       replyingToId.value = null
       replyContent.value = ''
     } catch {
-      // silently ignore
+    // silently ignore
     } finally {
       postingReplyId.value = null
     }
@@ -199,7 +199,8 @@
         <!-- Body -->
         <div class="cp-body">
           <div class="cp-meta">
-            <span class="cp-username">{{ comment._isAdminReply ? 'Administrador' : (comment.userName || 'Usuário') }}</span>
+            <span class="cp-username">{{ comment._isAdminReply ? 'Administrador' : (comment.userName || 'Usuário')
+            }}</span>
             <span v-if="comment._isAdminReply" class="cp-admin-badge">Admin</span>
             <span class="cp-date">{{ formatDate(comment.createdAt) }}</span>
           </div>
@@ -215,12 +216,7 @@
 
           <!-- Reply box -->
           <div v-if="replyingToId === comment.id" class="cp-reply-box">
-            <textarea
-              v-model="replyContent"
-              class="cp-textarea"
-              placeholder="Escreva sua resposta..."
-              rows="3"
-            />
+            <textarea v-model="replyContent" class="cp-textarea" placeholder="Escreva sua resposta..." rows="3" />
             <div class="cp-reply-actions">
               <button
                 class="cp-btn cp-btn--save"

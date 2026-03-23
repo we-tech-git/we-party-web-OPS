@@ -194,6 +194,12 @@ export function getEventComments (eventId: string) {
   return callApi<EventComment[]>('GET', `/events/${eventId}/comments`, undefined, true)
 }
 
+// Busca likes de um evento
+// ENDPOINT: GET /events/{eventId}/likes
+export function getEventLikes (eventId: string) {
+  return callApi<{ count: number }>('GET', `/events/${eventId}/likes`, undefined, true)
+}
+
 // Deleta um comentário
 // ENDPOINT: DELETE /events/{eventId}/comments/{commentId}
 export function deleteEventComment (eventId: string, commentId: string) {
