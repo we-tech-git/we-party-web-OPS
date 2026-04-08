@@ -7,214 +7,202 @@
 // ESTADO E LÓGICA DO FORMULÁRIO
 // ===============================
 // Tela de Login – usa AuthLayout e InputLabel
-  import { computed, onMounted, ref } from 'vue'
-  import { useI18n } from 'vue-i18n'
-  import AuthLayout from '@/components/UI/AuthLayout/AuthLayout.vue'
-  import InputLabel from '@/components/UI/inputLabel/InputLabel.vue'
-  import Snackbar from '@/components/UI/Snackbar/Snackbar.vue'
-  import router from '@/router'
-  import { AuthService } from '@/services/auth'
-  import { loginUser } from '@/services/users'
-  import { STORAGE_KEYS } from '@/utils/storageKeys'
+import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import AuthLayout from '@/components/UI/AuthLayout/AuthLayout.vue'
+import InputLabel from '@/components/UI/inputLabel/InputLabel.vue'
+import Snackbar from '@/components/UI/Snackbar/Snackbar.vue'
+import router from '@/router'
+import { AuthService } from '@/services/auth'
+import { loginUser } from '@/services/users'
+import { STORAGE_KEYS } from '@/utils/storageKeys'
 
-  const { t } = useI18n()
+const { t } = useI18n()
 
-  // ===============================
-  // GERADOR DE DADOS DE TESTE
-  // ===============================
-  /**
-   * Gera dados de login para teste.
-   * Retorna um objeto com email e senha pré-definidos.
-   */
-  function generateTestLoginData () {
-    // Gera email fixo com número randômico de 3 dígitos
-    // const randomNumber = Math.floor(Math.random() * 900) + 100
-    // Gera email fixo
-    // const emailGenerated = `teste776@gmail.com`
-    const emailGenerated = `jonathan.nwokolo@gmail.com`
-    const passwordGenerated = 'Teste12345@'
+// ===============================
+// GERADOR DE DADOS DE TESTE
+// ===============================
+/**
+ * Gera dados de login para teste.
+ * Retorna um objeto com email e senha pré-definidos.
+ */
+function generateTestLoginData() {
+  // Gera email fixo com número randômico de 3 dígitos
+  // const randomNumber = Math.floor(Math.random() * 900) + 100
+  // Gera email fixo
+  // const emailGenerated = `teste776@gmail.com`
+  const emailGenerated = `jonathan.nwokolo@gmail.com`
+  const passwordGenerated = 'Teste12345@'
 
-    return {
-      email: emailGenerated,
-      password: passwordGenerated,
-    }
+  return {
+    email: emailGenerated,
+    password: passwordGenerated,
   }
+}
 
-  /**
-   * Preenche o formulário com dados de teste.
-   * Pode usar dados fixos ou gerar dados aleatórios se isRandom for true.
-   */
-  function fillFormWithTestData (isRandom = false) {
-    if (isRandom) {
-      const randomNumber = Math.floor(Math.random() * 900) + 100
-      email.value = `testuser${randomNumber}@example.com`
-      password.value = 'password123'
-    } else {
-      const testData = generateTestLoginData()
+/**
+ * Preenche o formulário com dados de teste.
+ * Pode usar dados fixos ou gerar dados aleatórios se isRandom for true.
+ */
+function fillFormWithTestData(isRandom = false) {
+  if (isRandom) {
+    const randomNumber = Math.floor(Math.random() * 900) + 100
+    email.value = `testuser${randomNumber}@example.com`
+    password.value = 'password123'
+  } else {
+    const testData = generateTestLoginData()
 
-      // Limpa os erros antes de preencher
-      resetErrors()
-
-      email.value = testData.email
-      password.value = testData.password
-
-      console.log('📝 Dados de teste de login gerados:', {
-        email: testData.email,
-        senha: testData.password,
-      })
-    }
-  }
-
-  // Estado do formulário de login
-  const email = ref('')
-  const password = ref('')
-  const rememberMe = ref(false)
-  const isSubmitting = ref(false)
-  const snackbarVisible = ref(false)
-  const snackbarMessage = ref('')
-  const snackbarColor = ref('#ff9800')
-
-  const formErrors = ref({
-    email: '',
-    password: '',
-  })
-
-  // Validação: e-mail + senha preenchidos
-  const isFormValid = computed(() => {
-    return email.value.trim() && password.value.trim() && email.value.includes('@')
-  })
-
-  /**
-   * Exibe o componente Snackbar com uma mensagem e cor específicas.
-   * Gerencia a visibilidade para garantir que a animação ocorra corretamente.
-   */
-  function showSnackbar (message: string, color = '#ff9800') {
-    snackbarMessage.value = message
-    snackbarColor.value = color
-
-    if (snackbarVisible.value) {
-      snackbarVisible.value = false
-      requestAnimationFrame(() => {
-        snackbarVisible.value = true
-      })
-      return
-    }
-
-    snackbarVisible.value = true
-  }
-
-  /**
-   * Reseta os erros de validação do formulário.
-   */
-  function resetErrors () {
-    formErrors.value = {
-      email: '',
-      password: '',
-    }
-  }
-
-  /**
-   * Valida os campos do formulário antes do envio.
-   * Verifica se email e senha estão preenchidos e se o email é válido.
-   */
-  async function validateForm () {
-    if (isSubmitting.value) return
-
+    // Limpa os erros antes de preencher
     resetErrors()
 
-    const missingFields: string[] = []
+    email.value = testData.email
+    password.value = testData.password
 
-    if (!email.value.trim()) {
-      formErrors.value.email = t('login.errors.required.email')
-      missingFields.push('Email')
-    } else if (!email.value.includes('@')) {
-      formErrors.value.email = t('login.errors.invalid.email')
-      showSnackbar('Por favor, insira um email válido')
-      return
-    }
+    console.log('📝 Dados de teste de login gerados:', {
+      email: testData.email,
+      senha: testData.password,
+    })
+  }
+}
 
-    if (!password.value.trim()) {
-      formErrors.value.password = t('login.errors.required.password')
-      missingFields.push('Senha')
-    }
+// Estado do formulário de login
+const email = ref('')
+const password = ref('')
+const rememberMe = ref(false)
+const isSubmitting = ref(false)
+const snackbarVisible = ref(false)
+const snackbarMessage = ref('')
+const snackbarColor = ref('#ff9800')
 
-    if (missingFields.length > 0) {
-      showSnackbar(`Campos obrigatórios: ${missingFields.join(', ')}`)
-      return
-    }
+const formErrors = ref({
+  email: '',
+  password: '',
+})
 
-    await submitForm()
+// Validação: e-mail + senha preenchidos
+const isFormValid = computed(() => {
+  return email.value.trim() && password.value.trim() && email.value.includes('@')
+})
+
+/**
+ * Exibe o componente Snackbar com uma mensagem e cor específicas.
+ * Gerencia a visibilidade para garantir que a animação ocorra corretamente.
+ */
+function showSnackbar(message: string, color = '#ff9800') {
+  snackbarMessage.value = message
+  snackbarColor.value = color
+
+  if (snackbarVisible.value) {
+    snackbarVisible.value = false
+    requestAnimationFrame(() => {
+      snackbarVisible.value = true
+    })
+    return
   }
 
-  /**
-   * Envia os dados do formulário para a API de login.
-   * Gerencia o estado de carregamento, sucesso e falha.
-   */
-  async function submitForm () {
-    if (isSubmitting.value) return
+  snackbarVisible.value = true
+}
 
-    if (!isFormValid.value) {
-      showSnackbar('Por favor, preencha todos os campos obrigatórios')
-      return
+/**
+ * Reseta os erros de validação do formulário.
+ */
+function resetErrors() {
+  formErrors.value = {
+    email: '',
+    password: '',
+  }
+}
+
+/**
+ * Valida os campos do formulário antes do envio.
+ * Verifica se email e senha estão preenchidos e se o email é válido.
+ */
+async function validateForm() {
+  if (isSubmitting.value) return
+
+  resetErrors()
+
+  const missingFields: string[] = []
+
+  if (!email.value.trim()) {
+    formErrors.value.email = t('login.errors.required.email')
+    missingFields.push('Email')
+  } else if (!email.value.includes('@')) {
+    formErrors.value.email = t('login.errors.invalid.email')
+    showSnackbar('Por favor, insira um email válido')
+    return
+  }
+
+  if (!password.value.trim()) {
+    formErrors.value.password = t('login.errors.required.password')
+    missingFields.push('Senha')
+  }
+
+  if (missingFields.length > 0) {
+    showSnackbar(`Campos obrigatórios: ${missingFields.join(', ')}`)
+    return
+  }
+
+  await submitForm()
+}
+
+/**
+ * Envia os dados do formulário para a API de login.
+ * Gerencia o estado de carregamento, sucesso e falha.
+ */
+async function submitForm() {
+  if (isSubmitting.value) return
+
+  if (!isFormValid.value) {
+    showSnackbar('Por favor, preencha todos os campos obrigatórios')
+    return
+  }
+
+  const minLoadingMs = 2000
+  const start = Date.now()
+  isSubmitting.value = true
+
+  try {
+    const credentials = {
+      email: email.value.trim(),
+      password: password.value,
     }
 
-    const minLoadingMs = 2000
-    const start = Date.now()
-    isSubmitting.value = true
+    const response = await loginUser(credentials)
+    // NOTE: callApi já retorna o data diretamente, não o axios response
+    console.log('[Login] Resposta completa do login:', response)
 
-    try {
-      const credentials = {
-        email: email.value.trim(),
-        password: password.value,
-      }
+    // PRIMEIRO, VERIFICAMOS SE O LOGIN FOI UM SUCESSO REAL
+    if (response?.success && !!response?.data?.token) {
+      // --- LÓGICA DE SUCESSO ---
+      // Extrai os dados do usuário da resposta
+      const userData = response.data.user || response.data
+      console.log('[Login] Dados do usuário:', userData)
 
-      const response = await loginUser(credentials)
-      // NOTE: callApi já retorna o data diretamente, não o axios response
-      console.log('[Login] Resposta da API:', response)
+      AuthService.saveAuthData({
+        success: true,
+        message: 'Login realizado com sucesso',
+        token: response.data.token,
+        user: userData,
+      })
 
-      // PRIMEIRO, VERIFICAMOS SE O LOGIN FOI UM SUCESSO REAL
-      if (response?.success && !!response?.data?.token) {
-        // --- LÓGICA DE SUCESSO ---
-        AuthService.saveAuthData({
-          success: true,
-          message: 'Login realizado com sucesso',
-          token: response.data.token,
-          user: response.data,
-        })
-
-        // Salva o e-mail se "Lembrar-me" estiver ativo
-        if (rememberMe.value) {
-          localStorage.setItem('REMEMBERED_EMAIL', credentials.email)
-        } else {
-          localStorage.removeItem('REMEMBERED_EMAIL')
-        }
-
-        showSnackbar('Login realizado com sucesso! 🎉', '#22c55e')
-
-        setTimeout(() => {
-          router.push('/public/admin/home')
-        }, 1500)
+      // Salva o e-mail se "Lembrar-me" estiver ativo
+      if (rememberMe.value) {
+        localStorage.setItem('REMEMBERED_EMAIL', credentials.email)
       } else {
-        // Extrai a mensagem de erro da resposta
-        const errorMessage = response?.message || 'Erro ao fazer login. Verifique suas credenciais.'
-
-        // Verifica se o erro é sobre e-mail não verificado
-        if (errorMessage.toLowerCase().includes('email não verificado')) {
-          showSnackbar(errorMessage, '#ff9800')
-          localStorage.setItem(STORAGE_KEYS.NEW_CREATED_USER, JSON.stringify(email.value))
-          setTimeout(() => {
-            router.push('/public/ConfirmEmail')
-          }, 3000)
-        } else {
-          // Trata outros erros lógicos que podem vir do backend
-          showSnackbar(errorMessage, '#ef4444')
-        }
+        localStorage.removeItem('REMEMBERED_EMAIL')
       }
-    } catch (error: any) {
-      // Este bloco agora só será ativado para erros de rede (4xx, 5xx)
-      const errorMessage = error?.response?.data?.message || 'Erro ao fazer login. Verifique suas credenciais.'
 
-      // Verifica se o erro é sobre e-mail não verificado (mesmo lógica do bloco else)
+      showSnackbar('Login realizado com sucesso! 🎉', '#22c55e')
+
+      setTimeout(() => {
+        router.push('/public/admin/home')
+      }, 1500)
+    } else {
+      // Extrai a mensagem de erro da resposta
+      const errorMessage = response?.message || 'Erro ao fazer login. Verifique suas credenciais.'
+
+      // Verifica se o erro é sobre e-mail não verificado
       if (errorMessage.toLowerCase().includes('email não verificado')) {
         showSnackbar(errorMessage, '#ff9800')
         localStorage.setItem(STORAGE_KEYS.NEW_CREATED_USER, JSON.stringify(email.value))
@@ -222,29 +210,45 @@
           router.push('/public/ConfirmEmail')
         }, 3000)
       } else {
+        // Trata outros erros lógicos que podem vir do backend
         showSnackbar(errorMessage, '#ef4444')
       }
-    } finally {
-      const elapsed = Date.now() - start
-      const remaining = minLoadingMs - elapsed
-      if (remaining > 0) {
-        await new Promise(resolve => setTimeout(resolve, remaining))
-      }
-      isSubmitting.value = false
     }
-  }
+  } catch (error: any) {
+    // Este bloco agora só será ativado para erros de rede (4xx, 5xx)
+    const errorMessage = error?.response?.data?.message || 'Erro ao fazer login. Verifique suas credenciais.'
 
-  // ===============================
-  // INICIALIZAÇÃO DO COMPONENTE
-  // ===============================
-  onMounted(() => {
-    // Verifica se há um e-mail salvo para "Lembrar-me"
-    const rememberedEmail = localStorage.getItem('REMEMBERED_EMAIL')
-    if (rememberedEmail) {
-      email.value = rememberedEmail
-      rememberMe.value = true // Marca a caixa para refletir o estado salvo
+    // Verifica se o erro é sobre e-mail não verificado (mesmo lógica do bloco else)
+    if (errorMessage.toLowerCase().includes('email não verificado')) {
+      showSnackbar(errorMessage, '#ff9800')
+      localStorage.setItem(STORAGE_KEYS.NEW_CREATED_USER, JSON.stringify(email.value))
+      setTimeout(() => {
+        router.push('/public/ConfirmEmail')
+      }, 3000)
+    } else {
+      showSnackbar(errorMessage, '#ef4444')
     }
-  })
+  } finally {
+    const elapsed = Date.now() - start
+    const remaining = minLoadingMs - elapsed
+    if (remaining > 0) {
+      await new Promise(resolve => setTimeout(resolve, remaining))
+    }
+    isSubmitting.value = false
+  }
+}
+
+// ===============================
+// INICIALIZAÇÃO DO COMPONENTE
+// ===============================
+onMounted(() => {
+  // Verifica se há um e-mail salvo para "Lembrar-me"
+  const rememberedEmail = localStorage.getItem('REMEMBERED_EMAIL')
+  if (rememberedEmail) {
+    email.value = rememberedEmail
+    rememberMe.value = true // Marca a caixa para refletir o estado salvo
+  }
+})
 </script>
 
 <!--
@@ -268,37 +272,20 @@
       <h2 class="mobile-brand-title notranslate" translate="no">WE PARTY</h2>
       <div class="title-container">
         <h1 class="text-3xl font-bold">{{ $t('login.title') }}</h1>
-        <button
-          class="regenerate-btn"
-          title="Gerar novos dados de teste"
-          type="button"
-          @click="() => fillFormWithTestData(true)"
-        >
+        <button class="regenerate-btn" title="Gerar novos dados de teste" type="button"
+          @click="() => fillFormWithTestData(true)">
           🎲
         </button>
       </div>
 
       <form @submit.prevent="validateForm">
         <div class="inputs-container il-theme--pink">
-          <InputLabel
-            id="email"
-            v-model="email"
-            :error="!!formErrors.email"
-            :label="$t('login.emailPlaceholder')"
-            type="email"
-            @update:model-value="formErrors.email = ''"
-          />
+          <InputLabel id="email" v-model="email" :error="!!formErrors.email" :label="$t('login.emailPlaceholder')"
+            type="email" @update:model-value="formErrors.email = ''" />
           <span v-if="formErrors.email" class="error-message">{{ formErrors.email }}</span>
 
-          <InputLabel
-            id="password"
-            v-model="password"
-            :error="!!formErrors.password"
-            :input-password="true"
-            :label="$t('login.passwordPlaceholder')"
-            type="password"
-            @update:model-value="formErrors.password = ''"
-          />
+          <InputLabel id="password" v-model="password" :error="!!formErrors.password" :input-password="true"
+            :label="$t('login.passwordPlaceholder')" type="password" @update:model-value="formErrors.password = ''" />
           <span v-if="formErrors.password" class="error-message">{{ formErrors.password }}</span>
 
           <div class="login-options">

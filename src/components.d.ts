@@ -8,12 +8,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-<<<<<<< Updated upstream
-    AnalyticsDashboard: typeof import('./components/admin/analytics/AnalyticsDashboard.vue')['default']
-    AuthLayout: typeof import('./components/UI/AuthLayout/AuthLayout.vue')['default']
-=======
     AuthLayout: typeof import('./components/auth-kit/components/AuthLayout.vue')['default']
->>>>>>> Stashed changes
     ConfirmEmail: typeof import('./components/auth-kit/components/ConfirmEmail.vue')['default']
     ControlPanelDashboard: typeof import('./components/admin/control-panel/ControlPanelDashboard.vue')['default']
     EventCategorySelector: typeof import('./components/admin/new-event/EventCategorySelector.vue')['default']
@@ -23,19 +18,14 @@ declare module 'vue' {
     EventInfoForm: typeof import('./components/admin/new-event/EventInfoForm.vue')['default']
     EventPrivacySettings: typeof import('./components/admin/new-event/EventPrivacySettings.vue')['default']
     FeedbacksCenter: typeof import('./components/admin/feedbacks/FeedbacksCenter.vue')['default']
+    FeedCard: typeof import('./components/common/FeedCard.vue')['default']
     HomeDashboard: typeof import('./components/admin/home/HomeDashboard.vue')['default']
-    InputLabel: typeof import('./components/UI/inputLabel/InputLabel.vue')['default']
+    InputLabel: typeof import('./components/auth-kit/components/InputLabel.vue')['default']
     Interests: typeof import('./components/admin/interests/index.vue')['default']
     InterestsList: typeof import('./components/admin/interests/InterestsList.vue')['default']
     InterestsManager: typeof import('./components/admin/control-panel/InterestsManager.vue')['default']
-<<<<<<< Updated upstream
-    LanguageSwitcher: typeof import('./components/LanguageSwitcher.vue')['default']
-    LineupManager: typeof import('./components/admin/lineup/LineupManager.vue')['default']
-    Login: typeof import('./components/Login/Login.vue')['default']
-=======
     LanguageSwitcher: typeof import('./components/auth-kit/components/LanguageSwitcher.vue')['default']
     Login: typeof import('./components/auth-kit/components/Login.vue')['default']
->>>>>>> Stashed changes
     MyEventsManager: typeof import('./components/admin/my-events/MyEventsManager.vue')['default']
     NewEvent: typeof import('./components/admin/new-event/index.vue')['default']
     RequestPassword: typeof import('./components/auth-kit/components/RequestPassword.vue')['default']
@@ -44,7 +34,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Signup: typeof import('./components/auth-kit/components/Signup.vue')['default']
-    Snackbar: typeof import('./components/UI/Snackbar/Snackbar.vue')['default']
+    Snackbar: typeof import('./components/auth-kit/components/Snackbar.vue')['default']
     UsersManager: typeof import('./components/admin/users/UsersManager.vue')['default']
     VerifyPin: typeof import('./components/auth-kit/components/VerifyPin.vue')['default']
   }

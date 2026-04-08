@@ -15,24 +15,30 @@
           <button class="admin-logout-btn" title="Sair" type="button" @click="handleLogout">
             🚪 Sair
           </button>
-          <div class="admin-header__avatar">
-            <input
-              ref="avatarInputRef"
-              accept="image/*"
-              class="admin-avatar__input"
-              style="display: none;"
-              type="file"
-              @change="onAvatarChange"
-            >
-            <button
-              :aria-label="t('admin.header.changeAvatar')"
-              class="admin-avatar__button"
-              type="button"
-              @click="openAvatarModal"
-            >
-              <img :alt="t('admin.header.avatarAlt')" :src="avatarSrc">
-              <span class="admin-avatar__overlay">{{ t('admin.header.changeAvatar') }}</span>
-            </button>
+          <div class="admin-user-profile">
+            <div class="admin-user-info">
+              <span class="admin-user-name">{{ currentUser.name }}</span>
+              <span class="admin-user-email">{{ currentUser.email }}</span>
+            </div>
+            <div class="admin-header__avatar">
+              <input
+                ref="avatarInputRef"
+                accept="image/*"
+                class="admin-avatar__input"
+                style="display: none;"
+                type="file"
+                @change="onAvatarChange"
+              >
+              <button
+                :aria-label="t('admin.header.changeAvatar')"
+                class="admin-avatar__button"
+                type="button"
+                @click="openAvatarModal"
+              >
+                <img :alt="t('admin.header.avatarAlt')" :src="avatarSrc">
+                <span class="admin-avatar__overlay">{{ t('admin.header.changeAvatar') }}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -351,6 +357,32 @@
 .admin-title__separator {
   color: #c9c9c9;
   font-weight: 700;
+}
+
+.admin-user-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.admin-user-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2d2d3a;
+  line-height: 1.2;
+}
+
+.admin-user-email {
+  font-size: 0.8rem;
+  color: #8b8b99;
+  line-height: 1.2;
 }
 
 .admin-header__avatar {
@@ -685,6 +717,14 @@
   .admin-header__actions {
     justify-self: stretch;
     justify-content: flex-end;
+  }
+
+  .admin-user-email {
+    display: none;
+  }
+
+  .admin-user-name {
+    font-size: 0.85rem;
   }
 
   .admin-content {

@@ -2,10 +2,14 @@
   import { computed, onMounted, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
   import {
+    approveInterestRequest,
     createInterest,
     deleteInterest,
     getInterests,
+    getPendingInterests,
     type Interest,
+    type PendingInterest,
+    rejectInterestRequest,
     searchInterestsByName,
   } from '@/services/interests'
   import InterestsList from './InterestsList.vue'
@@ -20,13 +24,8 @@
   const searchQuery = ref('')
   const isSearching = ref(false)
 
-  const requests = ref<Array<{
-    id: number
-    name: string
-    requestedBy: string
-    date: string
-    time: string
-  }>>([])
+  const requests = ref<PendingInterest[]>([])
+  const isLoadingRequests = ref(false)
 
   // ─── Fetch interests ─────────────────────────────────────
   async function fetchInterests () {
@@ -61,7 +60,7 @@
       try {
         interests.value = await searchInterestsByName(query.trim())
       } catch {
-        // fallback: keep current list
+      // fallback: keep current list
       } finally {
         isSearching.value = false
       }
@@ -112,29 +111,51 @@
       await deleteInterest(id)
       interests.value = interests.value.filter(i => i.id !== id)
     } catch {
-      // silently fail or could show snackbar
+    // silently fail or could show snackbar
     } finally {
       isRemoving.value = null
     }
   }
 
-  // ─── Request Queue (mock — no API yet) ────────────────────
-  function approveRequest (id: number) {
-    requests.value = requests.value.filter(r => r.id !== id)
-    // When API exists: POST /interest/requests/:id/approve
-    fetchInterests()
+  // ─── Request Queue ────────────────────────────────────────
+  async function fetchRequests () {
+    isLoadingRequests.value = true
+    try {
+      requests.value = await getPendingInterests()
+    } catch {
+    // silently fail — fila fica vazia
+    } finally {
+      isLoadingRequests.value = false
+    }
   }
 
-  function rejectRequest (id: number) {
-    requests.value = requests.value.filter(r => r.id !== id)
-    // When API exists: POST /interest/requests/:id/reject
+  async function approveRequest (id: string) {
+    try {
+      await approveInterestRequest(id)
+      requests.value = requests.value.filter(r => r.id !== id)
+      fetchInterests()
+    } catch {
+    // silently fail
+    }
+  }
+
+  async function rejectRequest (id: string) {
+    try {
+      await rejectInterestRequest(id)
+      requests.value = requests.value.filter(r => r.id !== id)
+    } catch {
+    // silently fail
+    }
   }
 
   // ─── Computed ─────────────────────────────────────────────
   const totalInterests = computed(() => interests.value.length)
 
   // ─── Init ─────────────────────────────────────────────────
-  onMounted(fetchInterests)
+  onMounted(() => {
+    fetchInterests()
+    fetchRequests()
+  })
 </script>
 
 <template>
@@ -200,7 +221,12 @@
         @search="handleSearch"
       />
 
-      <RequestsQueue :requests="requests" @approve="approveRequest" @reject="rejectRequest" />
+      <RequestsQueue
+        :is-loading="isLoadingRequests"
+        :requests="requests"
+        @approve="approveRequest"
+        @reject="rejectRequest"
+      />
     </template>
 
     <!-- Add Interest Modal -->

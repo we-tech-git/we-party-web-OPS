@@ -3,10 +3,15 @@
     <!-- Welcome Header -->
     <header class="welcome-header">
       <div class="welcome-text">
-        <h1 class="welcome-title">
-          {{ t('admin.home.welcome') }}, <span class="producer-name">{{ producerName }}</span>! 👋
-        </h1>
-        <p class="welcome-subtitle">{{ t('admin.home.welcomeSubtitle') }}</p>
+        <div class="producer-info">
+          <img :alt="fullUserName" class="producer-avatar" :src="userAvatar">
+          <div>
+            <h1 class="welcome-title">
+              {{ t('admin.home.welcome') }}, <span class="producer-name">{{ producerName }}</span>! 👋
+            </h1>
+            <p class="welcome-subtitle">{{ t('admin.home.welcomeSubtitle') }}</p>
+          </div>
+        </div>
       </div>
       <div class="header-date">
         <span class="mdi mdi-calendar-today" />
@@ -61,90 +66,167 @@
             <span class="mdi mdi-chevron-left" />
           </button>
           <div class="carousel-track-container">
-            <div class="carousel-track" :style="{ transform: `translateX(calc(-${carouselIndex} * (520px + 16px)))` }">
-              <div
+            <div class="carousel-track" :style="{ transform: `translateX(calc(-${carouselIndex} * (400px + 16px)))` }">
+              <article
                 v-for="(event, i) in activeEvents"
                 :key="event.id"
                 class="carousel-card"
                 :class="{ 'carousel-card--active': i === carouselIndex }"
               >
-                <!-- Badge status no topo do card -->
-                <div class="carousel-card-top">
-                  <span class="carousel-status" :class="`status-${event.status}`">{{ event.status }}</span>
-                </div>
+                <!-- Card Container with Gradient Border -->
+                <div class="carousel-card-wrapper">
+                  <!-- Status Badge -->
+                  <div class="status-badge-wrapper">
+                    <span class="status-badge" :class="`status-badge--${event.status}`">
+                      <span class="status-dot" />
+                      {{ event.status }}
+                    </span>
+                  </div>
 
-                <!-- Layout horizontal: imagem + conteúdo -->
-                <div class="carousel-card-inner">
-                  <div class="carousel-card-img">
+                  <!-- Event Image with Overlay -->
+                  <div class="event-image-container">
                     <img
                       :alt="event.name"
-                      :src="event.cover || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400'"
+                      class="event-image"
+                      loading="lazy"
+                      :src="event.cover || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600'"
                     >
+                    <!-- Gradient Overlays -->
+                    <div class="image-overlay-gradient" />
+                    <div class="image-overlay-vignette" />
+
+                    <!-- Archive Button -->
+                    <button class="archive-button" title="Arquivar evento" type="button" @click="archiveEvent(event)">
+                      <svg
+                        fill="none"
+                        height="14"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                        width="14"
+                      >
+                        <path
+                          d="M3 6h18M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2m3 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6h14zM10 11v6M14 11v6"
+                        />
+                      </svg>
+                    </button>
+
+                    <!-- Likes Badge -->
+                    <div class="likes-badge">
+                      <svg fill="currentColor" height="11" viewBox="0 0 24 24" width="11">
+                        <path
+                          d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                        />
+                      </svg>
+                      {{ formatNumber(event.likes) }}
+                    </div>
                   </div>
 
-                  <div class="carousel-card-body">
-                    <div class="carousel-card-header">
-                      <h3 class="carousel-event-name">{{ event.name }}</h3>
-                      <button class="archive-btn" title="Arquivar evento" @click="archiveEvent(event)">
+                  <!-- Card Content -->
+                  <div class="event-content">
+                    <!-- Event Title -->
+                    <h3 class="event-title">{{ event.name }}</h3>
+
+                    <!-- Event Meta Info -->
+                    <div class="event-meta">
+                      <div class="meta-item">
                         <svg
-                          class="archive-icon"
                           fill="none"
+                          height="11"
                           stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
                           viewBox="0 0 24 24"
-                          xmlns="http://www.w3.org/2000/svg"
+                          width="11"
                         >
-                          <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3m4 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                          <rect
+                            height="18"
+                            rx="2"
+                            ry="2"
+                            width="18"
+                            x="3"
+                            y="4"
+                          />
+                          <line x1="16" x2="16" y1="2" y2="6" />
+                          <line x1="8" x2="8" y1="2" y2="6" />
+                          <line x1="3" x2="21" y1="10" y2="10" />
                         </svg>
-                      </button>
+                        <span>{{ event.date }}</span>
+                      </div>
+                      <div class="meta-item">
+                        <svg
+                          fill="none"
+                          height="11"
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          viewBox="0 0 24 24"
+                          width="11"
+                        >
+                          <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0z" />
+                          <circle cx="12" cy="10" r="3" />
+                        </svg>
+                        <span>{{ event.location }}</span>
+                      </div>
+                      <div class="meta-item">
+                        <svg
+                          fill="none"
+                          height="11"
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          viewBox="0 0 24 24"
+                          width="11"
+                        >
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                        <span>{{ event.commentsCount }} comentários</span>
+                      </div>
                     </div>
 
-                    <div class="carousel-event-details">
-                      <div class="carousel-event-date">
-                        <span class="mdi mdi-calendar-outline" />
-                        {{ event.date }}
-                      </div>
-                      <div class="carousel-event-location">
-                        <span class="mdi mdi-map-marker-outline" />
-                        {{ event.location }}
-                      </div>
+                    <!-- Category Tag -->
+                    <div v-if="event.interests && event.interests.length > 0" class="category-tags">
+                      <span v-for="(interest, idx) in event.interests.slice(0, 2)" :key="idx" class="category-tag">
+                        {{ interest }}
+                      </span>
+                      <span v-if="event.interests.length > 2" class="category-tag category-tag--more">
+                        +{{ event.interests.length - 2 }}
+                      </span>
                     </div>
 
-                    <div class="carousel-event-stats">
-                      <div class="event-stat event-stat--likes">
-                        <span class="mdi mdi-heart" />
-                        <span>{{ formatNumber(event.likes) }}</span>
-                      </div>
-                      <div v-if="event.interests && event.interests.length > 0" class="event-stat event-stat--category">
-                        <span class="mdi mdi-tag-outline" />
-                        <span>{{ event.interests.slice(0, 1).join(', ') }}</span>
-                      </div>
-                      <div v-else class="event-stat event-stat--category">
-                        <span class="mdi mdi-tag-outline" />
-                        <span>Sem categoria</span>
-                      </div>
-                    </div>
-
-                    <div class="carousel-countdown">
-                      <div class="carousel-countdown-item">
-                        <div class="cc-value">{{ event.countdown.days }}</div>
-                        <div class="cc-label">{{ t('admin.home.days') }}</div>
-                      </div>
-                      <div class="carousel-countdown-item">
-                        <div class="cc-value">{{ event.countdown.hours }}</div>
-                        <div class="cc-label">{{ t('admin.home.hours') }}</div>
-                      </div>
-                      <div class="carousel-countdown-item">
-                        <div class="cc-value">{{ event.countdown.minutes }}</div>
-                        <div class="cc-label">{{ t('admin.home.minutes') }}</div>
-                      </div>
-                      <div class="carousel-countdown-item">
-                        <div class="cc-value">{{ event.countdown.seconds }}</div>
-                        <div class="cc-label">{{ t('admin.home.seconds') }}</div>
+                    <!-- Countdown Timer -->
+                    <div class="countdown-container">
+                      <div class="countdown-label">Começa em:</div>
+                      <div class="countdown-grid">
+                        <div class="countdown-box">
+                          <div class="countdown-value">{{ event.countdown.days }}</div>
+                          <div class="countdown-text">dias</div>
+                        </div>
+                        <div class="countdown-separator">:</div>
+                        <div class="countdown-box">
+                          <div class="countdown-value">{{ event.countdown.hours }}</div>
+                          <div class="countdown-text">hrs</div>
+                        </div>
+                        <div class="countdown-separator">:</div>
+                        <div class="countdown-box">
+                          <div class="countdown-value">{{ event.countdown.minutes }}</div>
+                          <div class="countdown-text">min</div>
+                        </div>
+                        <div class="countdown-separator">:</div>
+                        <div class="countdown-box">
+                          <div class="countdown-value">{{ event.countdown.seconds }}</div>
+                          <div class="countdown-text">seg</div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </article>
             </div>
           </div>
           <button
@@ -217,8 +299,8 @@
               <span class="chart-stat-value">{{ totalEventCount }}</span>
               <span class="chart-stat-label">{{ t('admin.home.totalEventsLabel') }}</span>
             </div>
-            <div class="chart-stat positive">
-              <span class="chart-stat-value">+{{ growthPercent }}%</span>
+            <div class="chart-stat" :class="growthPercent >= 0 ? 'positive' : 'negative'">
+              <span class="chart-stat-value">{{ growthPercent >= 0 ? '+' : '' }}{{ growthPercent }}%</span>
               <span class="chart-stat-label">{{ t('admin.home.growth') }}</span>
             </div>
           </div>
@@ -370,9 +452,6 @@
               <h4 class="suggestion-title">{{ t(`admin.home.${suggestion.titleKey}`) }}</h4>
               <p class="suggestion-desc">{{ t(`admin.home.${suggestion.descKey}`) }}</p>
             </div>
-            <button class="suggestion-action" type="button">
-              <span class="mdi mdi-arrow-right" />
-            </button>
           </div>
         </div>
       </div>
@@ -423,13 +502,20 @@
 
   const { t, locale } = useI18n()
   const router = useRouter()
-  const { loadUser, getFirstName } = useCurrentUser()
+  const { currentUser, loadUser, getFirstName } = useCurrentUser()
 
   // Loading state
   const isLoadingEvents = ref(false)
 
   // Producer info
-  const producerName = computed(() => getFirstName())
+  const producerName = computed(() => {
+    const firstName = getFirstName()
+    console.log('[HomeDashboard] currentUser:', currentUser.value)
+    console.log('[HomeDashboard] firstName:', firstName)
+    return firstName || 'Produtor'
+  })
+  const userAvatar = computed(() => currentUser.value.avatar)
+  const fullUserName = computed(() => currentUser.value.name)
 
   // Current date
   const currentDate = computed(() => {
@@ -478,6 +564,7 @@
     isArchived?: boolean
     likes: number
     interests: string[]
+    commentsCount: number
     countdown: { days: number, hours: number, minutes: number, seconds: number }
   }
   const myEvents = ref<CarouselEvent[]>([])
@@ -537,13 +624,30 @@
   // Overview Stats — valores de curtidas derivados dos dados reais
   const overviewStats = computed(() => [
     { key: 'views', icon: 'mdi-eye', value: 45_892, trend: 12.5 },
-    { key: 'likesLabel', icon: 'mdi-heart', value: totalLikes.value, trend: 8.3 },
+    { key: 'likesLabel', icon: 'mdi-heart', value: totalLikes.value, trend: growthPercent.value },
   ])
 
   // Chart data
   const selectedPeriod = ref('7D')
   const periods = ['7D', '30D', '90D', '1A']
-  const growthPercent = ref(23.5)
+
+  // Calcula o crescimento percentual baseado em curtidas reais
+  const growthPercent = computed(() => {
+    if (chartData.value.length < 2) return 0
+
+    // Compara primeira metade vs segunda metade do período
+    const midPoint = Math.floor(chartData.value.length / 2)
+    const firstHalf = chartData.value.slice(0, midPoint)
+    const secondHalf = chartData.value.slice(midPoint)
+
+    const firstHalfAvg = firstHalf.reduce((sum, d) => sum + d.value, 0) / firstHalf.length
+    const secondHalfAvg = secondHalf.reduce((sum, d) => sum + d.value, 0) / secondHalf.length
+
+    if (firstHalfAvg === 0) return secondHalfAvg > 0 ? 100 : 0
+
+    const growth = ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100
+    return Math.round(growth * 10) / 10 // Arredonda para 1 casa decimal
+  })
 
   const chartData = ref([
     { date: 'Seg', value: 1200 },
@@ -556,17 +660,29 @@
   ])
 
   const chartPoints = computed(() => {
+    if (chartData.value.length === 0) return []
+
     const width = 400
     const height = 150
     const padding = 20
     const rawMax = Math.max(...chartData.value.map(d => d.value))
-    const maxValue = rawMax === 0 ? 1 : rawMax
+    const maxValue = rawMax === 0 || !Number.isFinite(rawMax) ? 1 : rawMax
+    const dataLength = chartData.value.length
 
-    return chartData.value.map((d, i) => ({
-      x: padding + (i / (chartData.value.length - 1)) * (width - 2 * padding),
-      y: height - padding - (d.value / maxValue) * (height - 2 * padding),
-      ...d,
-    }))
+    return chartData.value.map((d, i) => {
+      // Evita divisão por zero quando só há 1 ponto
+      const xPos = dataLength === 1
+        ? width / 2
+        : padding + (i / (dataLength - 1)) * (width - 2 * padding)
+
+      const yPos = height - padding - (d.value / maxValue) * (height - 2 * padding)
+
+      return {
+        x: Number.isFinite(xPos) ? xPos : padding,
+        y: Number.isFinite(yPos) ? yPos : height - padding,
+        ...d,
+      }
+    })
   })
 
   const chartLinePath = computed(() => {
@@ -616,6 +732,7 @@
     const status = ev.status ?? 'ativo'
     const likes = ev.likes ?? ev.likesCount ?? ev.likes_count ?? 0
     const interests = ev.interests ?? ev.categories ?? ev.tags ?? []
+    const commentsCount = ev.commentsCount ?? ev.comments_count ?? ev.totalComments ?? 0
     return {
       raw: ev,
       id: String(ev.id ?? ev._id ?? Math.random()),
@@ -627,6 +744,7 @@
       targetDate: startDate,
       likes,
       interests: Array.isArray(interests) ? interests : [],
+      commentsCount,
       countdown: computeCountdown(startDate),
     }
   }
@@ -651,7 +769,7 @@
       const list = extractList(res)
       console.log('[HomeDashboard] eventos encontrados:', list.length, list)
 
-      // Normaliza eventos e busca likes para cada um
+      // Normaliza eventos e busca likes e comentários para cada um
       const eventsWithLikes = await Promise.allSettled(
         list.map(async (ev: any) => {
           const normalizedEvent = normalizeEvent(ev)
@@ -660,6 +778,13 @@
             normalizedEvent.likes = likesRes?.count ?? likesRes?.data?.count ?? normalizedEvent.likes
           } catch (error) {
             console.warn(`[HomeDashboard] Erro ao buscar likes do evento ${normalizedEvent.id}:`, error)
+          }
+          try {
+            const commentsRes = await getEventComments(normalizedEvent.id) as any
+            const commentsList = extractCommentList(commentsRes)
+            normalizedEvent.commentsCount = commentsList.length
+          } catch (error) {
+            console.warn(`[HomeDashboard] Erro ao buscar comentários do evento ${normalizedEvent.id}:`, error)
           }
           return normalizedEvent
         }),
@@ -790,7 +915,8 @@
 
   onMounted(async () => {
     carouselInterval = setInterval(tickCarousels, 1000)
-    loadUser()
+    await loadUser()
+    console.log('[HomeDashboard] Após loadUser, currentUser:', currentUser.value)
     await loadEvents()
     loadComments()
   })
@@ -829,6 +955,29 @@
   align-items: flex-start;
   flex-wrap: wrap;
   gap: 16px;
+}
+
+.producer-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.producer-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid transparent;
+  background: linear-gradient(white, white) padding-box,
+    linear-gradient(135deg, #b46cff 0%, #ff4f94 100%) border-box;
+  box-shadow: 0 4px 12px rgba(180, 108, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.producer-avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(180, 108, 255, 0.3);
 }
 
 .welcome-title {
@@ -906,9 +1055,9 @@
 }
 
 .quick-action-btn--purple {
-  background: linear-gradient(135deg, #8b7cf7 0%, #6b5ce7 100%);
+  background: linear-gradient(135deg, #b46cff 0%, #8b5cf6 100%);
   color: white;
-  box-shadow: 0 4px 16px rgba(107, 92, 231, 0.3);
+  box-shadow: 0 4px 16px rgba(180, 108, 255, 0.3);
 }
 
 .quick-action-btn--disabled {
@@ -957,241 +1106,423 @@
 .carousel-wrapper {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  min-height: 560px;
 }
 
 .carousel-track-container {
   flex: 1;
   overflow: hidden;
   padding: 4px 0;
+  height: 560px;
 }
 
 .carousel-track {
   display: flex;
   gap: 16px;
-  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
+  height: 100%;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   CAROUSEL CARD - MODERN DESIGN
+   ═══════════════════════════════════════════════════════════════════════════ */
 .carousel-card {
-  flex: 0 0 520px;
-  background: white;
-  border-radius: 16px;
-  border: 1px solid rgba(229, 231, 235, 0.6);
-  overflow: hidden;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
-}
-
-.carousel-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
+  flex: 0 0 400px;
+  max-width: 400px;
+  min-width: 400px;
+  height: 560px;
+  position: relative;
+  isolation: isolate;
 }
 
 .carousel-card--active {
-  border-color: rgba(180, 108, 255, 0.4);
-  box-shadow: 0 8px 24px rgba(180, 108, 255, 0.18);
+  transform: scale(1.02);
 }
 
-/* Badge de status no topo */
-.carousel-card-top {
+.carousel-card-wrapper {
+  position: relative;
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  height: 100%;
   display: flex;
-  justify-content: flex-end;
-  padding: 10px 12px 0;
+  flex-direction: column;
 }
 
-.carousel-status {
-  background: #7c3aed;
-  color: white;
-  padding: 3px 10px;
-  border-radius: 6px;
-  font-size: 10px;
+/* Status Badge */
+.status-badge-wrapper {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
+  backdrop-filter: blur(12px);
+  border: 1.5px solid;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
-.status-PUBLISHED, .status-published {
-  background: #7c3aed;
+.status-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  animation: pulse-dot 2s ease-in-out infinite;
 }
 
-.status-DRAFT, .status-draft, .status-rascunho {
+@keyframes pulse-dot {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2);
+  }
+}
+
+.status-badge--ativo,
+.status-badge--active,
+.status-badge--ACTIVE {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(52, 211, 153, 0.12));
+  color: #059669;
+  border-color: rgba(5, 150, 105, 0.4);
+}
+
+.status-badge--ativo .status-dot,
+.status-badge--active .status-dot,
+.status-badge--ACTIVE .status-dot {
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+.status-badge--draft,
+.status-badge--rascunho,
+.status-badge--DRAFT {
+  background: linear-gradient(135deg, rgba(156, 163, 175, 0.15), rgba(107, 114, 128, 0.12));
+  color: #6b7280;
+  border-color: rgba(107, 114, 128, 0.3);
+}
+
+.status-badge--draft .status-dot,
+.status-badge--rascunho .status-dot,
+.status-badge--DRAFT .status-dot {
   background: #9ca3af;
 }
 
-.status-ACTIVE, .status-active, .status-ativo {
-  background: #10b981;
+.status-badge--published,
+.status-badge--PUBLISHED {
+  background: linear-gradient(135deg, rgba(180, 108, 255, 0.15), rgba(139, 92, 246, 0.12));
+  color: #b46cff;
+  border-color: rgba(180, 108, 255, 0.4);
 }
 
-/* Layout horizontal */
-.carousel-card-inner {
-  display: flex;
-  gap: 0;
-  padding: 12px;
-  gap: 14px;
+.status-badge--published .status-dot,
+.status-badge--PUBLISHED .status-dot {
+  background: #b46cff;
+  box-shadow: 0 0 8px rgba(180, 108, 255, 0.6);
 }
 
-.carousel-card-img {
-  flex: 0 0 150px;
-  height: 160px;
-  border-radius: 12px;
+/* Event Image Container */
+.event-image-container {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  min-height: 200px;
+  max-height: 200px;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
-.carousel-card-img img {
+.event-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  object-position: center;
 }
 
-.carousel-card:hover .carousel-card-img img {
-  transform: scale(1.04);
+/* Image Overlays */
+.image-overlay-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top,
+      rgba(0, 0, 0, 0.7) 0%,
+      rgba(0, 0, 0, 0.4) 30%,
+      rgba(0, 0, 0, 0.1) 60%,
+      transparent 100%);
+  pointer-events: none;
+  z-index: 1;
 }
 
-.carousel-card-body {
-  flex: 1;
+.image-overlay-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Archive Button */
+.archive-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: rgba(7, 10, 22, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Likes Badge */
+.likes-badge {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #ec4899;
+  box-shadow: 0 4px 16px rgba(236, 72, 153, 0.25);
+  border: 1.5px solid rgba(236, 72, 153, 0.2);
+}
+
+.likes-badge svg {
+  fill: #ec4899;
+  filter: drop-shadow(0 2px 4px rgba(236, 72, 153, 0.3));
+}
+
+/* Event Content */
+.event-content {
+  padding: 14px 18px 18px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-width: 0;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
 }
 
-.carousel-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.carousel-event-name {
+/* Event Title */
+.event-title {
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 800;
   color: #1f2937;
   margin: 0;
   line-height: 1.3;
-  overflow: hidden;
+  letter-spacing: -0.02em;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
-  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  background: linear-gradient(135deg, #1f2937 0%, #4b5563 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  min-height: 38px;
+  max-height: 38px;
 }
 
-.archive-btn {
-  background: transparent;
-  border: none;
-  color: #9ca3af;
-  cursor: pointer;
-  padding: 2px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-}
-
-.archive-btn:hover {
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
-}
-
-.archive-icon {
-  width: 16px;
-  height: 16px;
-}
-
-.carousel-event-details {
+/* Event Meta */
+.event-meta {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 5px;
+  flex-shrink: 0;
 }
 
-.carousel-event-date,
-.carousel-event-location {
+.meta-item {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12px;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #6b7280;
+  padding: 5px 9px;
+  background: linear-gradient(135deg, rgba(248, 248, 255, 0.8), rgba(255, 255, 255, 0.6));
+  border-radius: 9px;
+  border: 1px solid rgba(180, 108, 255, 0.1);
+  min-height: 28px;
+  overflow: hidden;
+}
+
+.meta-item span:last-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.meta-item svg {
+  flex-shrink: 0;
+  color: #b46cff;
+  filter: drop-shadow(0 2px 4px rgba(180, 108, 255, 0.3));
+}
+
+/* Category Tags */
+.category-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-height: 44px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.category-tag {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(180, 108, 255, 0.12), rgba(139, 92, 246, 0.08));
+  border: 1.5px solid rgba(180, 108, 255, 0.25);
+  font-size: 8px;
+  font-weight: 700;
+  color: #b46cff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 110px;
+}
+
+.category-tag--more {
+  background: linear-gradient(135deg, rgba(156, 163, 175, 0.12), rgba(107, 114, 128, 0.08));
+  border-color: rgba(156, 163, 175, 0.25);
+  border-style: dashed;
   color: #6b7280;
 }
 
-.carousel-event-date .mdi,
-.carousel-event-location .mdi {
-  color: #b46cff;
-  font-size: 13px;
+/* Countdown Container */
+.countdown-container {
+  margin-top: auto;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, rgba(180, 108, 255, 0.08), rgba(255, 79, 148, 0.05));
+  border-radius: 12px;
+  border: 2px solid rgba(180, 108, 255, 0.15);
   flex-shrink: 0;
 }
 
-.carousel-event-stats {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 2px;
+.countdown-label {
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #b46cff;
+  margin-bottom: 7px;
+  text-align: center;
 }
 
-.event-stat {
+.countdown-grid {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 4px 10px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  justify-content: center;
+  gap: 4px;
 }
 
-.event-stat--likes {
-  background: #fdf2f8;
-  color: #ec4899;
+.countdown-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  max-width: 40px;
+  width: 40px;
+  height: 44px;
+  padding: 5px 3px;
+  background: linear-gradient(135deg, #b46cff 0%, #ff4f94 100%);
+  border-radius: 9px;
+  box-shadow: 0 4px 12px rgba(180, 108, 255, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  position: relative;
+  overflow: hidden;
 }
 
-.event-stat--likes .mdi {
-  color: #ec4899;
-  font-size: 13px;
+.countdown-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.2) 0%,
+      transparent 50%,
+      rgba(0, 0, 0, 0.1) 100%);
+  pointer-events: none;
 }
 
-.event-stat--category {
-  background: #f3f4f6;
-  color: #7c3aed;
-}
-
-.event-stat--category .mdi {
-  color: #b46cff;
-  font-size: 13px;
-}
-
-.carousel-countdown {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-  margin-top: auto;
-}
-
-.carousel-countdown-item {
-  text-align: center;
-  padding: 6px 4px;
-  background: #7c3aed;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.25);
-  border-bottom: 3px solid #5b21b6;
-}
-
-.cc-value {
-  display: block;
+.countdown-value {
   font-size: 14px;
-  font-weight: 700;
-  color: white;
+  font-weight: 800;
+  color: #ffffff;
   line-height: 1;
-  margin-bottom: 2px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
 }
 
-.cc-label {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.8);
+.countdown-text {
+  font-size: 6px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
   text-transform: uppercase;
-  font-weight: 300;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.countdown-separator {
+  font-size: 12px;
+  font-weight: 800;
+  color: #ff4f94;
+  line-height: 1;
+  animation: blink 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+  width: 5px;
+  text-align: center;
+}
+
+@keyframes blink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
 }
 
 .carousel-arrow {
@@ -1224,23 +1555,27 @@
 .carousel-dots {
   display: flex;
   justify-content: center;
-  gap: 6px;
-  margin-top: 12px;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 0 12px;
+  flex-wrap: wrap;
 }
 
 .carousel-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #e0e0f0;
+  background: rgba(180, 108, 255, 0.2);
   cursor: pointer;
-  transition: all 0.2s ease;
+  border: 1px solid rgba(180, 108, 255, 0.3);
 }
 
 .carousel-dot--active {
-  background: #b46cff;
-  width: 20px;
+  background: linear-gradient(135deg, #b46cff, #8b5cf6);
+  width: 24px;
   border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(180, 108, 255, 0.4);
+  border-color: transparent;
 }
 
 /* Card Styles */
@@ -1788,25 +2123,6 @@
   line-height: 1.4;
 }
 
-.suggestion-action {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: none;
-  background: linear-gradient(135deg, #b46cff 0%, #8b5cf6 100%);
-  color: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  align-self: center;
-  transition: all 0.2s ease;
-}
-
-.suggestion-action:hover {
-  transform: scale(1.1);
-}
-
 /* Responsive */
 @media (max-width: 1400px) {
   .dashboard-grid {
@@ -1827,11 +2143,38 @@
   .stats-overview {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .carousel-card {
+    flex: 0 0 360px;
+    max-width: 360px;
+    min-width: 360px;
+  }
 }
 
 @media (max-width: 768px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
+  }
+
+  .carousel-card {
+    flex: 0 0 100%;
+    max-width: 100%;
+    min-width: 100%;
+    height: auto;
+  }
+
+  .carousel-wrapper {
+    min-height: auto;
+  }
+
+  .carousel-track-container {
+    height: auto;
+  }
+
+  .event-image-container {
+    height: 180px;
+    min-height: 180px;
+    max-height: 180px;
   }
 
   .stats-overview,

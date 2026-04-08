@@ -5,9 +5,7 @@ const API_BASE_URL = import.meta.env.VITE__BASE_URL || 'https://api.dev.wepartya
 
 function getAuthHeaders () {
   const token = localStorage.getItem(STORAGE_KEY_NAME.ACCESS_TOKEN)
-  if (token) {
-    console.log('[API] Token encontrado:', token.slice(0, 20) + '...')
-  } else {
+  if (!token && import.meta.env.DEV) {
     console.warn('[API] Token de autenticação não encontrado no localStorage')
   }
   return {

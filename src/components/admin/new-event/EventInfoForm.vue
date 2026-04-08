@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useCreateEventStore } from '@/stores/createEvent'
 
@@ -10,6 +10,11 @@
   const emojiPickerRef = ref<HTMLElement | null>(null)
   const showEmojiPicker = ref(false)
   const activeCategory = ref('smileys')
+
+  // CEP API
+  const isLoadingCep = ref(false)
+  const cepError = ref('')
+  const cepSuccess = ref(false)
 
   const emojiCategories = [
     {
@@ -72,6 +77,94 @@
       showEmojiPicker.value = false
     }
   }
+
+  // CEP Functions
+  function validateCepFormat (cep: string): boolean {
+    // Remove caracteres não numéricos
+    const cleanCep = cep.replace(/\D/g, '')
+    // Valida se tem exatamente 8 dígitos
+    return cleanCep.length === 8
+  }
+
+  async function searchCep (cep: string) {
+    // Remove caracteres não numéricos
+    const cleanCep = cep.replace(/\D/g, '')
+
+    // Reseta estados
+    cepError.value = ''
+    cepSuccess.value = false
+
+    // Valida formato
+    if (!validateCepFormat(cleanCep)) {
+      if (cleanCep.length > 0) {
+        cepError.value = 'CEP deve ter 8 dígitos'
+      }
+      return
+    }
+
+    // Busca CEP na API
+    isLoadingCep.value = true
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
+
+      if (!response.ok) {
+        throw new Error('Erro ao buscar CEP')
+      }
+
+      const data = await response.json()
+
+      // Verifica se o CEP foi encontrado
+      if (data.erro) {
+        cepError.value = 'CEP não encontrado'
+        return
+      }
+
+      // Preenche os campos automaticamente
+      store.street = data.logradouro || ''
+      store.district = data.bairro || ''
+      store.city = data.localidade || ''
+      store.state = data.uf || ''
+
+      cepSuccess.value = true
+
+      // Remove mensagem de sucesso após 3 segundos
+      setTimeout(() => {
+        cepSuccess.value = false
+      }, 3000)
+    } catch (error) {
+      console.error('Erro ao buscar CEP:', error)
+      cepError.value = 'Erro ao buscar CEP. Tente novamente.'
+    } finally {
+      isLoadingCep.value = false
+    }
+  }
+
+  // Formata CEP enquanto digita (adiciona hífen)
+  function formatCep (cep: string): string {
+    const cleanCep = cep.replace(/\D/g, '')
+    if (cleanCep.length <= 5) {
+      return cleanCep
+    }
+    return `${cleanCep.slice(0, 5)}-${cleanCep.slice(5, 8)}`
+  }
+
+  // Watch para buscar CEP automaticamente
+  watch(() => store.zip, (newCep) => {
+    if (newCep) {
+      // Formata o CEP
+      const formatted = formatCep(newCep)
+      if (formatted !== newCep) {
+        store.zip = formatted
+      }
+
+      // Busca automaticamente quando tiver 8 dígitos
+      const cleanCep = newCep.replace(/\D/g, '')
+      if (cleanCep.length === 8) {
+        searchCep(newCep)
+      }
+    }
+  })
 
   onMounted(() => {
     document.addEventListener('click', handleClickOutside)
@@ -228,12 +321,24 @@
             class="info-form__field"
             color="primary"
             density="comfortable"
+            :error-messages="cepError"
             hide-details="auto"
             inputmode="numeric"
             :label="t('admin.newEvent.form.zip')"
+            :loading="isLoadingCep"
+            maxlength="9"
+            placeholder="00000-000"
             rounded="xl"
+            :success-messages="cepSuccess ? 'Endereço encontrado!' : ''"
             variant="outlined"
-          />
+          >
+            <template #append-inner>
+              <span v-if="isLoadingCep" class="mdi mdi-loading mdi-spin cep-icon cep-icon--loading" />
+              <span v-else-if="cepSuccess" class="mdi mdi-check-circle cep-icon cep-icon--success" />
+              <span v-else-if="cepError" class="mdi mdi-alert-circle cep-icon cep-icon--error" />
+              <span v-else class="mdi mdi-map-marker cep-icon" />
+            </template>
+          </v-text-field>
         </v-col>
 
         <v-col cols="12" md="4">
@@ -490,5 +595,52 @@
 .emoji-fade-leave-to {
   opacity: 0;
   transform: translateY(-10px) scale(0.95);
+}
+
+/* CEP Icons */
+.cep-icon {
+  font-size: 20px;
+  color: #8b8b99;
+  transition: all 0.2s ease;
+}
+
+.cep-icon--loading {
+  color: #b46cff;
+}
+
+.cep-icon--success {
+  color: #3eb489;
+  animation: successPulse 0.5s ease;
+}
+
+.cep-icon--error {
+  color: #ff4f94;
+  animation: errorShake 0.5s ease;
+}
+
+@keyframes successPulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes errorShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
 }
 </style>

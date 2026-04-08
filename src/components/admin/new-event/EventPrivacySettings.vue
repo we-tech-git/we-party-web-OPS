@@ -1,168 +1,190 @@
 <script setup lang="ts">
-  import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-  import { useI18n } from 'vue-i18n'
-  import { getUserRecomendations } from '@/services/users'
-  import { useCreateEventStore } from '@/stores/createEvent'
+import { computed, ref } from 'vue'
+// FUNCIONALIDADES COMENTADAS - imports não utilizados: nextTick, onBeforeUnmount, onMounted, watch
+import { useI18n } from 'vue-i18n'
+// FUNCIONALIDADE COMENTADA - import não utilizado: getUserRecomendations
+// import { getUserRecomendations } from '@/services/users'
+import { useCreateEventStore } from '@/stores/createEvent'
 
-  const { t } = useI18n()
-  const store = useCreateEventStore()
+const { t } = useI18n()
+const store = useCreateEventStore()
 
-  const emit = defineEmits<{
-    (e: 'privacy-change', value: 'public' | 'followers'): void
-    (e: 'comments-change' | 'main-feed-change', value: 'no' | 'yes'): void
-    (e: 'add-invite'): void
-  }>()
+const emit = defineEmits<{
+  (e: 'privacy-change', value: 'public' | 'followers'): void
+  (e: 'comments-change', value: 'no' | 'yes'): void
+  // FUNCIONALIDADES COMENTADAS
+  // (e: 'comments-change' | 'main-feed-change', value: 'no' | 'yes'): void
+  // (e: 'add-invite'): void
+}>()
 
-  type Contact = { id: number | string, name: string, avatar: string }
+type Contact = { id: number | string, name: string, avatar: string }
 
-  const selectedPrivacy = computed(() => store.isPublic ? 'public' : 'followers')
-  const selectedComments = computed(() => store.allowComments ? 'yes' : 'no')
-  const selectedMainFeed = computed(() => store.showInMainFeed ? 'yes' : 'no')
+const selectedPrivacy = computed(() => store.isPublic ? 'public' : 'followers')
+const selectedComments = computed(() => store.allowComments ? 'yes' : 'no')
+// FUNCIONALIDADE COMENTADA: Exibir no feed principal
+// const selectedMainFeed = computed(() => store.showInMainFeed ? 'yes' : 'no')
 
-  const invitees = ref<Contact[]>([])
-  const availableContacts = ref<Contact[]>([])
-  const isLoadingContacts = ref(false)
+// FUNCIONALIDADE COMENTADA: Convites específicos
+/*
+const invitees = ref<Contact[]>([])
+const availableContacts = ref<Contact[]>([])
+const isLoadingContacts = ref(false)
 
-  // Fallback mock data caso a API falhe
-  const mockContacts: Contact[] = [
-    { id: 4, name: 'Isabela Rocha', avatar: 'https://i.pravatar.cc/100?img=51' },
-    { id: 5, name: 'Felipe Tavares', avatar: 'https://i.pravatar.cc/100?img=23' },
-    { id: 6, name: 'Camila Freitas', avatar: 'https://i.pravatar.cc/100?img=56' },
-    { id: 7, name: 'Renato Oliveira', avatar: 'https://i.pravatar.cc/100?img=2' },
-    { id: 8, name: 'Ana Vitória', avatar: 'https://i.pravatar.cc/100?img=18' },
-  ]
+// FUNCIONALIDADE COMENTADA: Convites específicos
+/*
+// Fallback mock data caso a API falhe
+const mockContacts: Contact[] = [
+  { id: 4, name: 'Isabela Rocha', avatar: 'https://i.pravatar.cc/100?img=51' },
+  { id: 5, name: 'Felipe Tavares', avatar: 'https://i.pravatar.cc/100?img=23' },
+  { id: 6, name: 'Camila Freitas', avatar: 'https://i.pravatar.cc/100?img=56' },
+  { id: 7, name: 'Renato Oliveira', avatar: 'https://i.pravatar.cc/100?img=2' },
+  { id: 8, name: 'Ana Vitória', avatar: 'https://i.pravatar.cc/100?img=18' },
+]
 
-  async function loadRecommendedContacts () {
-    isLoadingContacts.value = true
-    try {
-      const response = await getUserRecomendations()
-      const data = response?.data || response || []
+async function loadRecommendedContacts () {
+  isLoadingContacts.value = true
+  try {
+    const response = await getUserRecomendations()
+    const data = response?.data || response || []
 
-      availableContacts.value = Array.isArray(data) && data.length > 0
-        ? data.map((user: any) => ({
-          id: user.id || user._id,
-          name: user.name || user.username || 'Usuário',
-          avatar: user.profilePicture || user.avatar || `https://i.pravatar.cc/100?u=${user.id}`,
-        }))
-        : mockContacts
-    } catch (error) {
-      console.warn('[EventPrivacySettings] Erro ao carregar recomendações, usando dados mock:', error)
-      availableContacts.value = mockContacts
-    } finally {
-      isLoadingContacts.value = false
-    }
+    availableContacts.value = Array.isArray(data) && data.length > 0
+      ? data.map((user: any) => ({
+        id: user.id || user._id,
+        name: user.name || user.username || 'Usuário',
+        avatar: user.profilePicture || user.avatar || `https://i.pravatar.cc/100?u=${user.id}`,
+      }))
+      : mockContacts
+  } catch (error) {
+    console.warn('[EventPrivacySettings] Erro ao carregar recomendações, usando dados mock:', error)
+    availableContacts.value = mockContacts
+  } finally {
+    isLoadingContacts.value = false
   }
+}
+*/
 
-  onMounted(() => {
-    loadRecommendedContacts()
+// FUNCIONALIDADE COMENTADA: Modal de convites
+/*
+onMounted(() => {
+  loadRecommendedContacts()
+})
+
+const isModalOpen = ref(false)
+const searchTerm = ref('')
+const searchInputRef = ref<HTMLInputElement | null>(null)
+*/
+
+const privacyOptions = [
+  { value: 'public', label: t('admin.newEvent.privacy.public') },
+  { value: 'followers', label: t('admin.newEvent.privacy.followers') },
+] as const
+
+const commentOptions = [
+  { value: 'no', label: t('admin.newEvent.privacy.commentsNo') },
+  { value: 'yes', label: t('admin.newEvent.privacy.commentsYes') },
+] as const
+
+// FUNCIONALIDADE COMENTADA: Exibir no feed principal
+/*
+const mainFeedOptions = [
+  { value: 'no', label: t('admin.newEvent.privacy.mainFeedNo') },
+  { value: 'yes', label: t('admin.newEvent.privacy.mainFeedYes') },
+] as const
+*/
+
+function selectPrivacy(option: 'public' | 'followers') {
+  store.isPublic = (option === 'public')
+  emit('privacy-change', option)
+}
+
+function selectComments(option: 'no' | 'yes') {
+  store.allowComments = (option === 'yes')
+  emit('comments-change', option)
+}
+
+// FUNCIONALIDADE COMENTADA: Exibir no feed principal
+/*
+function selectMainFeed (option: 'no' | 'yes') {
+  store.showInMainFeed = (option === 'yes')
+  emit('main-feed-change', option)
+}
+*/
+
+// FUNCIONALIDADE COMENTADA: Funções de convite específico
+/*
+function openInviteModal () {
+  searchTerm.value = ''
+  isModalOpen.value = true
+  nextTick(() => {
+    searchInputRef.value?.focus()
   })
+}
 
-  const isModalOpen = ref(false)
-  const searchTerm = ref('')
-  const searchInputRef = ref<HTMLInputElement | null>(null)
+function closeInviteModal () {
+  isModalOpen.value = false
+}
 
-  const privacyOptions = [
-    { value: 'public', label: t('admin.newEvent.privacy.public') },
-    { value: 'followers', label: t('admin.newEvent.privacy.followers') },
-  ] as const
+function syncInviteesToStore () {
+  store.invitedUserIds = invitees.value.map(c => String(c.id))
+}
 
-  const commentOptions = [
-    { value: 'no', label: t('admin.newEvent.privacy.commentsNo') },
-    { value: 'yes', label: t('admin.newEvent.privacy.commentsYes') },
-  ] as const
-
-  const mainFeedOptions = [
-    { value: 'no', label: t('admin.newEvent.privacy.mainFeedNo') },
-    { value: 'yes', label: t('admin.newEvent.privacy.mainFeedYes') },
-  ] as const
-
-  function selectPrivacy (option: 'public' | 'followers') {
-    store.isPublic = (option === 'public')
-    emit('privacy-change', option)
-  }
-
-  function selectComments (option: 'no' | 'yes') {
-    store.allowComments = (option === 'yes')
-    emit('comments-change', option)
-  }
-
-  function selectMainFeed (option: 'no' | 'yes') {
-    store.showInMainFeed = (option === 'yes')
-    emit('main-feed-change', option)
-  }
-
-  function openInviteModal () {
-    searchTerm.value = ''
-    isModalOpen.value = true
-    nextTick(() => {
-      searchInputRef.value?.focus()
-    })
-  }
-
-  function closeInviteModal () {
-    isModalOpen.value = false
-  }
-
-  function syncInviteesToStore () {
-    store.invitedUserIds = invitees.value.map(c => String(c.id))
-  }
-
-  function addInvitee (contact: Contact) {
-    if (!isInviteeSelected(contact.id)) {
-      invitees.value = [...invitees.value, contact]
-      syncInviteesToStore()
-      emit('add-invite')
-    }
-  }
-
-  function isInviteeSelected (contactId: number | string) {
-    return invitees.value.some(existing => existing.id === contactId)
-  }
-
-  function removeInvitee (contactId: number | string) {
-    invitees.value = invitees.value.filter(existing => existing.id !== contactId)
+function addInvitee (contact: Contact) {
+  if (!isInviteeSelected(contact.id)) {
+    invitees.value = [...invitees.value, contact]
     syncInviteesToStore()
+    emit('add-invite')
   }
+}
 
-  function toggleInvite (contact: Contact) {
-    if (isInviteeSelected(contact.id)) {
-      removeInvitee(contact.id)
-    } else {
-      addInvitee(contact)
-    }
+function isInviteeSelected (contactId: number | string) {
+  return invitees.value.some(existing => existing.id === contactId)
+}
+
+function removeInvitee (contactId: number | string) {
+  invitees.value = invitees.value.filter(existing => existing.id !== contactId)
+  syncInviteesToStore()
+}
+
+function toggleInvite (contact: Contact) {
+  if (isInviteeSelected(contact.id)) {
+    removeInvitee(contact.id)
+  } else {
+    addInvitee(contact)
   }
+}
 
-  const displayedInvitees = computed(() => invitees.value.slice(0, 3))
-  const remainingCount = computed(() => Math.max(0, invitees.value.length - displayedInvitees.value.length))
-  const filteredContacts = computed(() => {
-    const term = searchTerm.value.trim().toLowerCase()
-    if (!term) return availableContacts.value
-    return availableContacts.value.filter(contact => contact.name.toLowerCase().includes(term))
-  })
+const displayedInvitees = computed(() => invitees.value.slice(0, 3))
+const remainingCount = computed(() => Math.max(0, invitees.value.length - displayedInvitees.value.length))
+const filteredContacts = computed(() => {
+  const term = searchTerm.value.trim().toLowerCase()
+  if (!term) return availableContacts.value
+  return availableContacts.value.filter(contact => contact.name.toLowerCase().includes(term))
+})
 
-  let previousBodyOverflow: string | null = null
+let previousBodyOverflow: string | null = null
 
-  function handleKeydown (event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      closeInviteModal()
-    }
+function handleKeydown (event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    closeInviteModal()
   }
+}
 
-  watch(isModalOpen, value => {
-    if (value) {
-      previousBodyOverflow = document.body.style.overflow
-      document.body.style.overflow = 'hidden'
-      document.addEventListener('keydown', handleKeydown)
-    } else {
-      document.body.style.overflow = previousBodyOverflow ?? ''
-      document.removeEventListener('keydown', handleKeydown)
-    }
-  })
-
-  onBeforeUnmount(() => {
+watch(isModalOpen, value => {
+  if (value) {
+    previousBodyOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', handleKeydown)
+  } else {
     document.body.style.overflow = previousBodyOverflow ?? ''
     document.removeEventListener('keydown', handleKeydown)
-  })
+  }
+})
+
+onBeforeUnmount(() => {
+  document.body.style.overflow = previousBodyOverflow ?? ''
+  document.removeEventListener('keydown', handleKeydown)
+})
+*/
 </script>
 
 <template>
@@ -170,14 +192,9 @@
     <section class="privacy-card">
       <header class="card-title">{{ t('admin.newEvent.privacy.title') }}</header>
       <div :aria-label="t('admin.newEvent.privacy.title')" class="segmented" role="group">
-        <button
-          v-for="option in privacyOptions"
-          :key="option.value"
-          :aria-pressed="selectedPrivacy === option.value"
-          :class="['segmented-button', { active: selectedPrivacy === option.value }]"
-          type="button"
-          @click="selectPrivacy(option.value)"
-        >
+        <button v-for="option in privacyOptions" :key="option.value" :aria-pressed="selectedPrivacy === option.value"
+          :class="['segmented-button', { active: selectedPrivacy === option.value }]" type="button"
+          @click="selectPrivacy(option.value)">
           {{ option.label }}
         </button>
       </div>
@@ -185,7 +202,8 @@
       <p class="card-description">{{ t('admin.newEvent.privacy.description') }}</p>
     </section>
 
-    <section class="privacy-card">
+    <!-- FUNCIONALIDADE COMENTADA: Convite específico -->
+    <!-- <section class="privacy-card">
       <header class="card-title">{{ t('admin.newEvent.privacy.invitesTitle') }}</header>
       <div class="invite-row">
         <div class="avatar-stack" role="list">
@@ -206,26 +224,22 @@
         </button>
       </div>
       <p class="card-description">{{ t('admin.newEvent.privacy.invitesDescription') }}</p>
-    </section>
+    </section> -->
 
     <section class="privacy-card">
       <header class="card-title">{{ t('admin.newEvent.privacy.commentsTitle') }}</header>
       <div :aria-label="t('admin.newEvent.privacy.commentsTitle')" class="segmented" role="group">
-        <button
-          v-for="option in commentOptions"
-          :key="option.value"
-          :aria-pressed="selectedComments === option.value"
-          :class="['segmented-button', { active: selectedComments === option.value }]"
-          type="button"
-          @click="selectComments(option.value)"
-        >
+        <button v-for="option in commentOptions" :key="option.value" :aria-pressed="selectedComments === option.value"
+          :class="['segmented-button', { active: selectedComments === option.value }]" type="button"
+          @click="selectComments(option.value)">
           {{ option.label }}
         </button>
       </div>
       <p class="card-description">{{ t('admin.newEvent.privacy.commentsDescription') }}</p>
     </section>
 
-    <section class="privacy-card">
+    <!-- FUNCIONALIDADE COMENTADA: Exibir no feed principal -->
+    <!-- <section class="privacy-card">
       <header class="card-title">{{ t('admin.newEvent.privacy.mainFeedTitle') }}</header>
       <div :aria-label="t('admin.newEvent.privacy.mainFeedTitle')" class="segmented" role="group">
         <button
@@ -240,9 +254,10 @@
         </button>
       </div>
       <p class="card-description">{{ t('admin.newEvent.privacy.mainFeedDescription') }}</p>
-    </section>
+    </section> -->
 
-    <Teleport to="body">
+    <!-- FUNCIONALIDADE COMENTADA: Modal de convites específicos -->
+    <!-- <Teleport to="body">
       <div
         v-if="isModalOpen"
         aria-modal="true"
@@ -284,7 +299,7 @@
           </div>
         </div>
       </div>
-    </Teleport>
+    </Teleport> -->
   </div>
 </template>
 

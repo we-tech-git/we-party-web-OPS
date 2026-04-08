@@ -70,7 +70,7 @@
         showSnackbar(t('resetPassword.successMessage'), '#4caf50')
         // Redireciona para a página de login após um breve atraso
         setTimeout(() => {
-          router.push({ name: '/public/Login' })
+          router.push({ name: '/public/login/' })
         }, 2000)
         return
       }
@@ -114,7 +114,7 @@
       // Redireciona de volta para a página de solicitação de senha após um breve atraso
       showSnackbar(localErrorMessage, '#f44336')
       setTimeout(() => {
-        router.push({ name: '/public/RequestPassword' })
+        router.push({ name: '/public/RequestPassword/' })
       }, 3000)
     }
   }

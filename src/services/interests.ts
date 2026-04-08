@@ -5,6 +5,13 @@ export interface Interest {
   name: string
 }
 
+export interface PendingInterest {
+  id: string
+  name: string
+  requestedBy: string
+  createdAt: string
+}
+
 // ─── Interesses (Admin / globais) ───────────────────────────
 
 // Lista todos os interesses
@@ -35,6 +42,24 @@ export function updateInterest (id: string, name: string) {
 // ENDPOINT: DELETE /interest/{id}
 export function deleteInterest (id: string) {
   return callApi('DELETE', `/interest/${id}`, undefined, true)
+}
+
+// Busca interesses pendentes na fila de aprovação (solicitados por usuários)
+// ENDPOINT: GET /interest/public-search?limit=10&offset=0
+export function getPendingInterests (limit = 10, offset = 0) {
+  return callApi<PendingInterest[]>('GET', `/interest/public-search?limit=${limit}&offset=${offset}`, undefined, true)
+}
+
+// Aprova um interesse da fila
+// ENDPOINT: POST /interest/{id}/approve
+export function approveInterestRequest (id: string) {
+  return callApi('POST', `/interest/${id}/approve`, undefined, true)
+}
+
+// Rejeita um interesse da fila
+// ENDPOINT: POST /interest/{id}/reject
+export function rejectInterestRequest (id: string) {
+  return callApi('POST', `/interest/${id}/reject`, undefined, true)
 }
 
 // ─── Interesses do Usuário ──────────────────────────────────

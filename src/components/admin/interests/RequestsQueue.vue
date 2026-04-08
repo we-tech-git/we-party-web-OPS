@@ -1,20 +1,16 @@
 <script setup lang="ts">
+  import type { PendingInterest } from '@/services/interests'
   import { useI18n } from 'vue-i18n'
 
   const { t } = useI18n()
 
   defineProps<{
-    requests: Array<{
-      id: number
-      name: string
-      requestedBy: string
-      date: string
-      time: string
-    }>
+    requests: PendingInterest[]
+    isLoading?: boolean
   }>()
 
   const emit = defineEmits<{
-    (e: 'approve' | 'reject', id: number): void
+    (e: 'approve' | 'reject', id: string): void
   }>()
 
   function getInitials (name: string) {
@@ -24,6 +20,16 @@
       .join('')
       .slice(0, 2)
       .toUpperCase()
+  }
+
+  function formatDate (isoString: string) {
+    const date = new Date(isoString)
+    return date.toLocaleDateString('pt-BR')
+  }
+
+  function formatTime (isoString: string) {
+    const date = new Date(isoString)
+    return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
   }
 </script>
 
@@ -41,7 +47,11 @@
       </div>
     </div>
 
-    <TransitionGroup class="requests-list" name="list" tag="div">
+    <div v-if="isLoading" class="d-flex align-center justify-center py-8">
+      <v-progress-circular color="primary" indeterminate size="32" />
+    </div>
+
+    <TransitionGroup v-else class="requests-list" name="list" tag="div">
       <div v-for="request in requests" :key="request.id" class="request-item">
         <div class="request-content">
           <!-- Interest Name (Hero) -->
@@ -58,7 +68,7 @@
             <div class="user-details">
               <span class="user-name">{{ request.requestedBy }}</span>
               <span class="request-date">
-                {{ request.date }} às {{ request.time }}
+                {{ formatDate(request.createdAt) }} às {{ formatTime(request.createdAt) }}
               </span>
             </div>
           </div>
@@ -85,7 +95,7 @@
       </div>
     </TransitionGroup>
 
-    <div v-if="requests.length === 0" class="empty-state">
+    <div v-if="!isLoading && requests.length === 0" class="empty-state">
       <div class="empty-icon-wrapper">
         <v-icon color="success" icon="mdi-check-circle-outline" size="48" />
       </div>
