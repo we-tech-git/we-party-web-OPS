@@ -9,13 +9,13 @@
 // Tela de Login – usa AuthLayout e InputLabel
   import { computed, onMounted, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
+  import router from '@/router'
   import { loginUser } from '../api/users'
   import { STORAGE_KEYS } from '../common/storage'
+  import { AuthService } from '../services/auth'
   import AuthLayout from './AuthLayout.vue'
   import InputLabel from './InputLabel.vue'
   import Snackbar from './Snackbar.vue'
-  import router from '@/router'
-  import { AuthService } from '../services/auth'
 
   const { t } = useI18n()
 
@@ -274,14 +274,6 @@
       <h2 class="mobile-brand-title notranslate" translate="no">WE PARTY</h2>
       <div class="title-container">
         <h1 class="text-3xl font-bold">{{ $t('login.title') }}</h1>
-        <button
-          class="regenerate-btn"
-          title="Gerar novos dados de teste"
-          type="button"
-          @click="() => fillFormWithTestData(true)"
-        >
-          🎲
-        </button>
       </div>
 
       <form @submit.prevent="validateForm">
@@ -312,7 +304,7 @@
               <input v-model="rememberMe" type="checkbox">
               {{ $t('login.rememberMe') }}
             </label>
-            <router-link class="forgot-link" to="/public/RequestPassword">{{ $t('login.forgotPassword') }}</router-link>
+            <!-- <router-link class="forgot-link" to="/public/RequestPassword">{{ $t('login.forgotPassword') }}</router-link> -->
           </div>
 
           <button :aria-busy="isSubmitting" class="btn-primary" :disabled="!isFormValid || isSubmitting" type="submit">
@@ -324,12 +316,6 @@
         <Snackbar v-model="snackbarVisible" :color="snackbarColor" :message="snackbarMessage" :timeout="4000" />
       </form>
 
-      <div class="footer-row">
-        <p class="login-link-text">
-          {{ $t('login.noAccount') }} <router-link to="/public/Signup">{{ $t('login.signupLink') }}</router-link>
-        </p>
-        <p class="free-text">É de graça <span class="heart">❤</span></p>
-      </div>
     </template>
   </AuthLayout>
 </template>
