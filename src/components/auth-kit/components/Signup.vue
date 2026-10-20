@@ -21,6 +21,9 @@
   // ===============================
   // GERADOR DE DADOS DE TESTE
   // ===============================
+  // Atalhos de teste só existem no `vite dev`; no build de produção o botão não é renderizado.
+  const isDev = import.meta.env.DEV
+
   function generateRandomUserData () {
     const firstNames = [
       'Ana', 'Bruno', 'Carlos', 'Diana', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena',
@@ -45,7 +48,7 @@
 
     // Gera senha que atende aos critérios
     // const emailGenerated = `contact@wepartyapp.com`
-    const passwordGenerated = `Teste12345@`
+    const passwordGenerated = `Tmp${randomNumber}${Math.random().toString(36).slice(2, 10)}!Aa`
 
     return {
       fullName: fullNameGenerated,
@@ -268,7 +271,8 @@
   // INICIALIZAÇÃO DO COMPONENTE
   // ===============================
   onMounted(() => {
-    // Preenche automaticamente com dados de teste ao carregar a página
+    // Preenche com dados de teste só no `vite dev`; em produção o formulário começa vazio.
+    if (!isDev) return
     const testData = generateRandomUserData()
 
     fullName.value = testData.fullName
@@ -310,6 +314,7 @@
       <div class="title-container">
         <h1 class="text-3xl font-bold">{{ $t('signup.title') }}</h1>
         <button
+          v-if="isDev"
           class="regenerate-btn"
           title="Gerar novos dados de teste"
           type="button"

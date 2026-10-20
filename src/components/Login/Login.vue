@@ -23,46 +23,16 @@ const { t } = useI18n()
 // GERADOR DE DADOS DE TESTE
 // ===============================
 /**
- * Gera dados de login para teste.
- * Retorna um objeto com email e senha pré-definidos.
- */
-function generateTestLoginData() {
-  // Gera email fixo com número randômico de 3 dígitos
-  // const randomNumber = Math.floor(Math.random() * 900) + 100
-  // Gera email fixo
-  // const emailGenerated = `teste776@gmail.com`
-  const emailGenerated = `jonathan.nwokolo@gmail.com`
-  const passwordGenerated = 'Teste12345@'
-
-  return {
-    email: emailGenerated,
-    password: passwordGenerated,
-  }
-}
-
-/**
  * Preenche o formulário com dados de teste.
  * Pode usar dados fixos ou gerar dados aleatórios se isRandom for true.
  */
-function fillFormWithTestData(isRandom = false) {
-  if (isRandom) {
-    const randomNumber = Math.floor(Math.random() * 900) + 100
-    email.value = `testuser${randomNumber}@example.com`
-    password.value = 'password123'
-  } else {
-    const testData = generateTestLoginData()
+// Atalho de teste: só existe no `vite dev`; no build de produção o botão não é renderizado.
+const isDev = import.meta.env.DEV
 
-    // Limpa os erros antes de preencher
-    resetErrors()
-
-    email.value = testData.email
-    password.value = testData.password
-
-    console.log('📝 Dados de teste de login gerados:', {
-      email: testData.email,
-      senha: testData.password,
-    })
-  }
+function fillFormWithTestData() {
+  const randomNumber = Math.floor(Math.random() * 900) + 100
+  email.value = `testuser${randomNumber}@example.com`
+  password.value = `Tmp${randomNumber}${Math.random().toString(36).slice(2, 10)}!`
 }
 
 // Estado do formulário de login
@@ -272,8 +242,8 @@ onMounted(() => {
       <h2 class="mobile-brand-title notranslate" translate="no">WE PARTY</h2>
       <div class="title-container">
         <h1 class="text-3xl font-bold">{{ $t('login.title') }}</h1>
-        <button class="regenerate-btn" title="Gerar novos dados de teste" type="button"
-          @click="() => fillFormWithTestData(true)">
+        <button v-if="isDev" class="regenerate-btn" title="Gerar novos dados de teste" type="button"
+          @click="fillFormWithTestData">
           🎲
         </button>
       </div>

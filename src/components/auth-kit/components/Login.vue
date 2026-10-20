@@ -22,49 +22,6 @@
   // ===============================
   // GERADOR DE DADOS DE TESTE
   // ===============================
-  /**
-   * Gera dados de login para teste.
-   * Retorna um objeto com email e senha pré-definidos.
-   */
-  function generateTestLoginData () {
-    // Gera email fixo com número randômico de 3 dígitos
-    // const randomNumber = Math.floor(Math.random() * 900) + 100
-    // Gera email fixo
-    // const emailGenerated = `teste776@gmail.com`
-    const emailGenerated = `jonathan.nwokolo@gmail.com`
-    const passwordGenerated = 'Teste12345@'
-
-    return {
-      email: emailGenerated,
-      password: passwordGenerated,
-    }
-  }
-
-  /**
-   * Preenche o formulário com dados de teste.
-   * Pode usar dados fixos ou gerar dados aleatórios se isRandom for true.
-   */
-  function fillFormWithTestData (isRandom = false) {
-    if (isRandom) {
-      const randomNumber = Math.floor(Math.random() * 900) + 100
-      email.value = `testuser${randomNumber}@example.com`
-      password.value = 'password123'
-    } else {
-      const testData = generateTestLoginData()
-
-      // Limpa os erros antes de preencher
-      resetErrors()
-
-      email.value = testData.email
-      password.value = testData.password
-
-      console.log('📝 Dados de teste de login gerados:', {
-        email: testData.email,
-        senha: testData.password,
-      })
-    }
-  }
-
   // Estado do formulário de login
   const email = ref('')
   const password = ref('')
